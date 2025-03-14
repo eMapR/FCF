@@ -6,10 +6,10 @@ library(spBayes)
 library(MASS)
 
 ## load up synthetic data
-load("synthetic-data.RData")
+load("/vol/v1/FCF/spatial-model-walkthrough/assets/synthetic-data.RData")
 
 ## load up fitted model
-load("fitted-model.RData")
+load("/vol/v1/FCF/spatial-model-walkthrough/assets/fitted-model.RData")
 
 ## predict using spPredict
 
@@ -86,7 +86,7 @@ sd(y.mn.ppd)
 ## see what happens we try to use spPredict output though,
 y.mn.ppd2 <- colMeans(y.ppd)
 
-pdf("figures/y-mn-ppd2.pdf", width = 6, height = 6)
+pdf("/vol/v1/FCF/spatial-model-walkthrough/assest/y-mn-ppd2.pdf", width = 6, height = 6)
 hist(y.mn.ppd2)
 dev.off()
 

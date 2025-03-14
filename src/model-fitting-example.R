@@ -5,7 +5,7 @@ library(sp)
 library(spBayes)
 library(geoR)
 
-load("synthetic-data.RData")
+load("/vol/v1/FCF/spatial-model-walkthrough/assets/synthetic-data.RData")
 
 ## first we are going select 100 grid cells to be our 'plots'
 ## where we have measured y.
@@ -49,4 +49,4 @@ m.1 <- spSVC(sqrt(y) ~ x,coords=coords,starting=starting,tuning=tuning,priors=pr
 ## plot(m.1$p.theta.samples)
 ## dev.off()
 
-save(m.1, file = "fitted-model.RData")
+save(m.1, file = "/vol/v1/FCF/spatial-model-walkthrough/assets/fitted-model.RData")
