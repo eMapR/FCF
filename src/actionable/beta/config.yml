@@ -1,0 +1,27 @@
+site: black-mountains
+data_dir: /vol/v1/FCF/bayesUpdate/data
+output_dir: results
+n_samples: 25000
+n_threads: 50
+max_dist: 5
+
+phi_one: 100
+phi_two: 0.001
+sigma_sq_one: 2
+sigma_sq_two: 750
+tau_sq_one: 2
+tau_sq_two: 750
+
+phi_starting: 1.5
+sigma_sq_starting: 750
+tau_sq_starting: 750
+
+phi_tuning: 0.06
+sigma_sq_tuning: 0.06
+tau_sq_tuning: 0.06
+
+discard_offset: 5001    # needs to be less that n samples cuts off begining of chain
+chain_sample: 8         # takes the 8th element for training  
+
+
+
