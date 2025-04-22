@@ -1,3 +1,6 @@
 data/
 *.tif
 *.zip
+results/
+figures/
+doc/
