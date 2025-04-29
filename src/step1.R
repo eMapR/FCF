@@ -36,6 +36,14 @@ coords <- model_data$coords
 
 
 # 2. Fit linear model and check variogram
-fit_lm_variogram(y, x, coords, max.dist = params$max.dist)
+result <- fit_lm_variogram(y, x, coords, max.dist = params$max.dist)
 
+vario <- result$variogram
+
+# Estimate directly:
+nugget_estimate <- vario$v[1]
+fitted_sill <- vario$v[3]
+#cat(vario$v)
+cat("Estimated Nugget:", nugget_estimate, "\n")
+cat("Fitted Sill:", fitted_sill, "\n")
 print('Complete!')

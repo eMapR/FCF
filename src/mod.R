@@ -21,27 +21,27 @@ validate_config <- function(cfg) {
     output_dir = "character",
     n.samples = "numeric",
     n.threads = "numeric",
-    max.dist = "numeric",
+    #max.dist = "numeric",
     
-    phi.Unif.a.n = "numeric",
-    phi.Unif.a.d = "numeric",
-    phi.Unif.b.n = "numeric",
-    phi.Unif.b.d = "numeric",
+    #phi.Unif.a.n = "numeric",
+    max.effective.range = "numeric",
+    #phi.Unif.b.n = "numeric",
+    min.effective.range = "numeric",
     
-    sigma.sq.a = "numeric",
-    sigma.sq.b = "numeric",
+    #sigma.sq.a = "numeric",
+    spatial.variance.scale = "numeric",
     
-    tau.sq.a = "numeric",
-    tau.sq.b = "numeric",
+    #tau.sq.a = "numeric",
+    nugget.variance.scale = "numeric",
     
-    phi.s.n = "numeric",
-    phi.s.d = "numeric",
-    sigma.sq.s = "numeric",
-    tau.sq.s = "numeric",
+    #phi.s.n = "numeric",
+    starting.decay.rate = "numeric",
+    starting.spatial.variance = "numeric",
+    starting.nugget.variance = "numeric",
     
-    phi.t = "numeric",
-    sigma.sq.t = "numeric",
-    tau.sq.t = "numeric",
+    decay.rate.tuning = "numeric",
+    spatial.variance.tuning = "numeric",
+    nugget.variance.tuning = "numeric",
     
     discard_offset = "numeric",
     chain_sample = "numeric"
@@ -148,21 +148,21 @@ make_params <- function(config_path = NULL) {
   defaults <- list(
     n.samples = 25000,
     n.threads = 50,
-    phi.Unif.a.n = 3,
-    phi.Unif.a.d = 100,
-    phi.Unif.b.n = 3,
-    phi.Unif.b.d = 0.001,
-    sigma.sq.a = 2,
-    sigma.sq.b = 750,
-    tau.sq.a = 2,
-    tau.sq.b = 750,
-    phi.s.n = 3,
-    phi.s.d = 1.5,
-    sigma.sq.s = 750,
-    tau.sq.s = 750,
-    phi.t = 0.06,
-    sigma.sq.t = 0.06,
-    tau.sq.t = 0.06,
+    #phi.Unif.a.n = 3,
+    max.effective.range = 100,
+    #phi.Unif.b.n = 3,
+    min.effective.range = 0.001,
+    #sigma.sq.a = 2,
+    spatial.variance.scale = 750,
+    #tau.sq.a = 2,
+    nugget.variance.scale = 750,
+    #phi.s.n = 3,
+    starting.decay.rate = 1.5,
+    starting.spatial.variance = 750,
+    starting.nugget.variance = 750,
+    decay.rate.tuning = 0.06,
+    spatial.variance.tuning = 0.06,
+    nugget.variance.tuning = 0.06,
     discard_offset=5001,
     chain_sample=8
   )
@@ -183,7 +183,7 @@ prepare_model_data <- function(obs) {
   return(list(y = y, x = x, coords = coords))
 }
 
-fit_lm_variogram <- function(y, x, coords, max.dist = 5) {
+ffit_lm_variogram <- function(y, x, coords, max.dist = 5) {
   mod <- lm(y ~ x)
   vario <- variog(data = resid(mod), coords = coords, max.dist = max.dist)
   png("plot.png", width = 800, height = 600)
@@ -192,15 +192,64 @@ fit_lm_variogram <- function(y, x, coords, max.dist = 5) {
   return(list(model = mod, variogram = vario))
 }
 
+
+fit_lm_variogram <- function(y, x, coords, max.dist = 5) {
+  
+  mod <- lm(y ~ x)
+  vario <- variog(data = resid(mod), coords = coords, max.dist = max.dist)
+  
+  # Basic estimates
+  nugget_estimate <- vario$v[1]
+  partial_sill_estimate <- max(vario$v) - nugget_estimate
+  range_estimate <- max(vario$u) * 0.5  # Rough guess: half of maximum distance
+
+  # Fit a theoretical model (e.g., exponential) using initial values
+  fit <- variofit(vario, cov.model = "exponential", weights = "equal",
+                  ini.cov.pars = c(partial_sill_estimate, range_estimate),
+                  nugget = nugget_estimate)
+
+  nugget_fit <- fit$nugget
+  partial_sill_fit <- fit$cov.pars[1]
+  total_sill_fit <- nugget_fit + partial_sill_fit
+  
+  # Plot
+  png("plot.png", width = 800, height = 600)
+  plot(vario, main = "Semivariogram with Nugget and Sill")
+  lines(fit, col = "blue")  # overlay fitted model
+  
+  # Add horizontal lines
+  abline(h = nugget_estimate, col = "red", lty = 2, lwd = 2)   # Estimated nugget line
+#  abline(h = sill_estimate, col = "darkgreen", lty = 2, lwd = 2) # Estimated sill line
+  
+  # Add fitted sill if you want
+  abline(h = total_sill_fit, col = "darkgreen", lty = 2, lwd = 2) # Fitted sill
+  
+  # Add a simple legend
+  legend("bottomright", legend = c("Empirical Nugget", "Fitted Sill"),
+         col = c("red", "darkgreen"), lty = c(2,2), lwd = 2, bg = "white")
+  
+  dev.off()
+  
+  return(list(
+    model = mod,
+    variogram = vario,
+    nugget_estimate = nugget_estimate,
+    #sill_estimate = sill_estimate,
+    #fitted_nugget = nugget_fit,
+    fitted_sill = total_sill_fit
+  ))
+}
+
+
 fit_spatial_model <- function(y, x, coords, par) {
   p <- 2
   priors <- list("beta.Norm" = list(rep(0, p), diag(1000, p)),
-                 "phi.Unif" = list(par$phi.Unif.a.n/par$phi.Unif.a.d, par$phi.Unif.b.n/par$phi.Unif.b.d),
-                 "sigma.sq.IG" = list(par$sigma.sq.a, par$sigma.sq.b),
-                 "tau.sq.IG" = c(par$tau.sq.a, par$tau.sq.b))
+                 "phi.Unif" = list(3/par$max.effective.range, 3/par$min.effective.range),
+                 "sigma.sq.IG" = list(2, par$spatial.variance.scale),
+                 "tau.sq.IG" = c(2, par$nugget.variance.scale))
 
-  starting <- list("phi" = par$phi.s.n/par$phi.s.d, "sigma.sq" = par$sigma.sq.s, "tau.sq" = par$tau.sq.s)
-  tuning <- list("phi" = par$phi.t, "sigma.sq" = par$sigma.sq.t, "tau.sq"=par$tau.sq.t)
+  starting <- list("phi" = 3/par$starting.decay.rate, "sigma.sq" = par$starting.spatial.variance, "tau.sq" = par$starting.nugget.variance)
+  tuning <- list("phi" = par$decay.rate.tuning, "sigma.sq" = par$spatial.variance.tuning, "tau.sq"=par$nugget.variance.tuning)
   m.1 <- spSVC(y ~ x, coords = coords, starting = starting, tuning = tuning,
                n.omp.threads = par$n.threads, priors = priors,
                cov.model = "exponential", n.samples = par$n.samples)

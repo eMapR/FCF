@@ -9,24 +9,39 @@ yaml_data <- NULL
 yaml_file_path <- NULL
 
 # Function to run script and stream output
-run_my_script <- function(console_text, plot_label,step) {
+run_my_script <- function(console_text, plot_label, step) {
   tkdelete(console_text, "1.0", "end")
   if (file.exists(output_file)) file.remove(output_file)
+
+  last_line_count <- 0  # Track how many lines already displayed
 
   # Run script in background
   system2("Rscript", args = step, stdout = output_file, stderr = output_file, wait = FALSE)
 
   # Stream output and refresh plot
   stream_output <- function() {
-    if (file.exists(output_file)) {
-      lines <- tryCatch(readLines(output_file), error = function(e) character(0))
-      tkdelete(console_text, "1.0", "end")
-      for (line in lines) {
+  if (file.exists(output_file)) {
+    lines <- tryCatch(readLines(output_file), error = function(e) character(0))
+    if (length(lines) > last_line_count) {
+      new_lines <- lines[(last_line_count + 1):length(lines)]  # Only truly new lines  
+      # Get scroll position correctly
+      yview_raw <- tclvalue(tkyview(console_text))
+      yview_info <- as.numeric(strsplit(yview_raw, " ")[[1]][2])
+      at_bottom <- (yview_info >= 0.99)
+
+      for (line in new_lines) {
         tkinsert(console_text, "end", paste0(line, "\n"))
       }
-      tkyview(console_text, "end")
-    }
 
+      if (at_bottom) {
+        tkyview(console_text, "moveto", 1)
+      }
+
+      last_line_count <<- length(lines)  # Update last_line_count
+    }
+  }
+
+    # Refresh plot
     if (file.exists(plot_path)) {
       tryCatch({
         img <- tkimage.create("photo", file = plot_path)
@@ -37,6 +52,7 @@ run_my_script <- function(console_text, plot_label,step) {
       })
     }
 
+    # Keep streaming every 1000 ms
     tcl("after", 1000, stream_output)
   }
 
@@ -82,17 +98,31 @@ tkwm.title(tt, "Script Runner with YAML Editor and Plot Viewer")
 main_frame <- tkframe(tt)
 tkgrid(main_frame)
 
-# Left side: Console and plot
+# Create a left frame for console
 left_frame <- tkframe(main_frame)
 tkgrid(left_frame, row = 0, column = 0, sticky = "nw")
 
-# Console output
+# Console label
 tkgrid(tklabel(left_frame, text = "Console Output:"), sticky = "w")
+
+# Console frame for text and scrollbar
 console_frame <- tkframe(left_frame)
-console_text <- tktext(console_frame, width = 60, height = 10, yscrollcommand = function(...) tkset(scroll, ...))
-scroll <- tkscrollbar(console_frame, orient = "vertical", command = function(...) tkyview(console_text, ...))
+
+# Create console text widget
+console_text <- tktext(console_frame, width = 60, height = 10)
+
+# Create scrollbar
+scroll <- tkscrollbar(console_frame, orient = "vertical", 
+                      command = function(...) tkyview(console_text, ...))
+
+# Link scrollbar to text widget
+tkconfigure(console_text, yscrollcommand = function(...) tkset(scroll, ...))
+
+# Pack them together
 tkpack(console_text, side = "left", fill = "both", expand = TRUE)
 tkpack(scroll, side = "right", fill = "y")
+
+# Grid the console frame
 tkgrid(console_frame)
 
 # Plot output
@@ -101,9 +131,12 @@ plot_label <- tklabel(left_frame)
 tkgrid(plot_label)
 
 # Run button (under plot)
-tkgrid(tkbutton(left_frame, text = "Run Step 1", command = function() run_my_script(console_text, plot_label,"step1.R")), pady = 10)
-tkgrid(tkbutton(left_frame, text = "Run Step 2", command = function() run_my_script(console_text, plot_label,"step2.R")), pady = 10)
-tkgrid(tkbutton(left_frame, text = "Run Step 3", command = function() run_my_script(console_text, plot_label,"step3.R")), pady = 10)
+button_frame <- tkframe(left_frame)
+button1 <- tkbutton(button_frame, text = "Run Step 1", command = function() run_my_script(console_text, plot_label,"step1.R"))
+button2 <- tkbutton(button_frame, text = "Run Step 2", command = function() run_my_script(console_text, plot_label,"step2.R"))
+button3 <- tkbutton(button_frame, text = "Run Step 3", command = function() run_my_script(console_text, plot_label,"step3.R"))
+tkgrid(button1,button2,button3)
+tkgrid(button_frame)
 
 # Right side: YAML editor and buttons
 right_frame <- tkframe(main_frame)
@@ -111,10 +144,10 @@ tkgrid(right_frame, row = 0, column = 1, sticky = "ne", padx = 10)
 
 tkgrid(tklabel(right_frame, text = "YAML Editor:"), sticky = "w")
 yaml_frame <- tkframe(right_frame)
-yaml_text <- tktext(yaml_frame, width = 50, height = 25, wrap = "word", yscrollcommand = function(...) tkset(scroll2, ...))
-scroll2 <- tkscrollbar(yaml_frame, orient = "vertical", command = function(...) tkyview(yaml_text, ...))
+yaml_text <- tktext(yaml_frame, width = 50, height = 25, wrap = "word")
+#scroll2 <- tkscrollbar(yaml_frame, orient = "vertical", command = function(...) tkyview(yaml_text, ...))
 tkpack(yaml_text, side = "left", fill = "both", expand = TRUE)
-tkpack(scroll2, side = "right", fill = "y")
+#tkpack(scroll2, side = "right", fill = "y")
 tkgrid(yaml_frame)
 
 # YAML Buttons
