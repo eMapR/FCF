@@ -1,4 +1,4 @@
-site: black-mountains
+site: eddie-ranch
 data_dir: /vol/v1/FCF/bayesUpdate/data
 output_dir: /vol/v1/FCF/bayesUpdate/results
 n.samples: 5000
