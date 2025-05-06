@@ -1,4 +1,4 @@
-run_my_script <- function(console_text, plot_label, step_script, checklist_labels, step_name) {
+run_script_0 <- function(console_text, plot_label, step_script, checklist_labels, step_name) {
   # Define output paths
   output_file <- "output.txt"
   plot_path <- "plot.png"

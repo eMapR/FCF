@@ -32,29 +32,26 @@ carbon.map <- asset_list$carbon.map
 model_data <- prepare_model_data(pts)
 y <- model_data$y
 x <- model_data$x
-#coords <- model_data$coords
+coords <- model_data$coords
 
-# Remove duplicate coordinate rows
-# Combine everything into one data frame
-df <- data.frame(x = model_data$x,
-                 y = model_data$y,
-                 coord1 = model_data$coords[,1],
-                 coord2 = model_data$coords[,2])
+# Plot the scatterplot
+plot(x, y, main = "Scatterplot of y vs x",
+     xlab = "x", ylab = "y", pch = 19, col = "blue")
 
-# Remove duplicate coordinate rows
-df_unique <- df[!duplicated(df[, c("coord1", "coord2")]), ]
+# Save the plot as a PNG file
+png("plot.png", width = 800, height = 600)
+plot(x, y, main = "Scatterplot of y vs x",
+     xlab = "x", ylab = "y", pch = 19, col = "blue")
+dev.off()
 
-# Reassign variables
-x <- df_unique$x
-y <- df_unique$y
-coords <- as.matrix(df_unique[, c("coord1", "coord2")])
+# Create histogram of y
+hist(y, main = "Histogram of y",
+     xlab = "y", col = "steelblue", border = "white")
 
+# Save histogram to PNG
+png("plot.png", width = 800, height = 600)
+hist(y, main = "Histogram of y",
+     xlab = "y", col = "steelblue", border = "white")
+dev.off()
 
-# 3. Fit spatial model
-params2 <- make_params("config.yaml")
-
-m.1 <- fit_spatial_model(y, x, coords, params2)
-save(m.1, file = file.path(results_dir, "m.1.RData"))
-
-
-print("Complete!")
+print('Complete!')

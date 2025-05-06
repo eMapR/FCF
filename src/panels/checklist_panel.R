@@ -1,7 +1,7 @@
 create_checklist_panel <- function(parent_frame) {
   checklist_frame <- tkframe(parent_frame)
   
-  steps <- c("Check Shapefile", "Check Raster", "Load Image", "Train Model")
+  steps <- c("Check YAML File", "Check YAML Syntax", "Load Image", "Train Model")
   checklist_labels <- list()
 
   for (step in steps) {

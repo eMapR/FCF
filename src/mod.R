@@ -7,10 +7,10 @@ check_yaml_exists_and_valid <- function(path) {
   
   tryCatch({
     config <- yaml::read_yaml(path)
-    message("? YAML file exists and is valid.")
+    message(">>YAML file exists and is valid<<")
     #return(config)
   }, error = function(e) {
-    stop(sprintf("? Failed to read YAML file: %s", e$message))
+    stop(sprintf(">>>Failed to read YAML file: %s<<<", e$message))
   })
 }
 
@@ -49,23 +49,23 @@ validate_config <- function(cfg) {
   
   for (key in names(required_fields)) {
     if (!key %in% names(cfg)) {
-      stop(sprintf("Missing required field: '%s'", key))
+      stop(sprintf(">>>Missing required field: '%s'<<<", key))
     }
     expected_type <- required_fields[[key]]
     actual_value <- cfg[[key]]
     if (expected_type == "numeric" && !is.numeric(actual_value)) {
-      stop(sprintf("Field '%s' should be numeric but is %s", key, class(actual_value)))
+      stop(sprintf(">>>Field '%s' should be numeric but is %s<<<", key, class(actual_value)))
     }
     if (expected_type == "character" && !is.character(actual_value)) {
-      stop(sprintf("Field '%s' should be character but is %s", key, class(actual_value)))
+      stop(sprintf(">>>Field '%s' should be character but is %s<<<", key, class(actual_value)))
     }
   }
   
   if (cfg$discard_offset >= cfg$n.samples) {
-    stop("'discard_offset' must be less than 'n.samples'")
+    stop(">>>'discard_offset' must be less than 'n.samples'<<<")
   }
   
-  message("? Config is valid")
+  message(">>Config is valid<<")
 }
 
 

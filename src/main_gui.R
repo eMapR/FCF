@@ -10,7 +10,9 @@ source("panels/run_buttons_panel.R")
 source("panels/yaml_editor_panel.R")
 source("panels/help_panel.R")
 source("handlers/run_my_script.R")
+source("handlers/run_script_0.R")
 source("handlers/yaml_handlers.R")
+source("handlers/checklist_handlers.R")
 
 
 # Create the main window
@@ -56,11 +58,13 @@ tkpack(help_panel$frame, expand = TRUE, fill = "both", padx = 5, pady = 5)
 
 # Connect Run Buttons
 tkconfigure(run_buttons$buttons$step1, 
-            command = function() run_my_script(console$text_widget, plot$plot_widget, "step1.R"))
+            command = function() run_script_0(console$text_widget, plot$plot_widget, "step0.R", checklist$labels, "Check YAML File"))
 tkconfigure(run_buttons$buttons$step2, 
-            command = function() run_my_script(console$text_widget, plot$plot_widget, "step2.R"))
+            command = function() run_my_script(console$text_widget, plot$plot_widget, "step1.R", checklist$labels, "Check YAML File"))
 tkconfigure(run_buttons$buttons$step3, 
-            command = function() run_my_script(console$text_widget, plot$plot_widget, "step3.R"))
+            command = function() run_my_script(console$text_widget, plot$plot_widget, "step2.R", checklist$labels, "Check Raster"))
+tkconfigure(run_buttons$buttons$step4, 
+            command = function() run_my_script(console$text_widget, plot$plot_widget, "step3.R", checklist$labels, "Load Image"))
 
 # Connect YAML Load/Save buttons
 tkconfigure(yaml_editor$load_button, 
