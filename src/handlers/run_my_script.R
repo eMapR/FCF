@@ -1,8 +1,8 @@
 run_my_script <- function(console_text, plot_label, step_script, checklist_labels, step_name) {
   # Define output paths
   output_file <- "output.txt"
+  file.remove("plot.png")
   plot_path <- "plot.png"
-
   tkdelete(console_text, "1.0", "end")
   
   if (file.exists(output_file)) file.remove(output_file)

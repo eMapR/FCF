@@ -6,8 +6,8 @@ n.threads: 50
 max.dist: 5
 max.effective.range: 100
 min.effective.range: 0.001
-spatial.variance.scale: 750
-nugget.variance.scale: 750
+spatial.variance.scale: 850
+nugget.variance.scale: 850
 starting.decay.rate: 1.5
 starting.spatial.variance: 4000
 starting.nugget.variance: 4000

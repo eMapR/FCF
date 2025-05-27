@@ -5,6 +5,7 @@ library(terra)
 library(geoR)
 library(spBayes)
 library(yaml)
+file.remove("plot.png")
 
 source("mod.R")
 
@@ -21,7 +22,7 @@ validate_config(params)
 site <- params$site
 
 # make and generate output directory 
-results_dir <- file.path(params$output_dir, site, "results")
+results_dir <- file.path(params$output_dir, site)
 if (!dir.exists(results_dir)) dir.create(results_dir, recursive = TRUE)
 
 # 1. Load and prepare data assets
@@ -56,5 +57,6 @@ params2 <- make_params("config.yaml")
 m.1 <- fit_spatial_model(y, x, coords, params2)
 save(m.1, file = file.path(results_dir, "m.1.RData"))
 
+file.copy("plot.png", file.path(results_dir,"chainImg.png"))
 
 print("Complete!")

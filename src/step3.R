@@ -5,7 +5,7 @@ library(terra)
 library(geoR)
 library(spBayes)
 library(yaml)
-
+file.remove("plot.png")
 source("mod.R")
 
 # check yaml file path exists
@@ -21,7 +21,7 @@ validate_config(params)
 site <- params$site
 
 # make and generate output directory 
-results_dir <- file.path(params$output_dir, site, "results")
+results_dir <- file.path(params$output_dir, site)
 if (!dir.exists(results_dir)) dir.create(results_dir, recursive = TRUE)
 
 # 1. Load and prepare data assets
@@ -41,3 +41,6 @@ pred.rast.joint <- predict_joint(m.1, carbon.map, site, out_dir = params$output_
 
 # 6. Plot resultsx
 plot_predictions(pred.rast, carbon.map)
+
+
+print("Complete!")

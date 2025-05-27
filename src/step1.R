@@ -21,7 +21,7 @@ validate_config(params)
 site <- params$site
 
 # make and generate output directory 
-results_dir <- file.path(params$output_dir, site, "results")
+results_dir <- file.path(params$output_dir, site)
 if (!dir.exists(results_dir)) dir.create(results_dir, recursive = TRUE)
 
 # 1. Load and prepare data assets
@@ -38,6 +38,9 @@ coords <- model_data$coords
 # 2. Fit linear model and check variogram
 result <- fit_lm_variogram(y, x, coords, max.dist = params$max.dist)
 
+file.copy("plot.png", file.path(results_dir,"semivariogram.png"))
+
+
 vario <- result$variogram
 
 # Estimate directly:
@@ -46,4 +49,5 @@ fitted_sill <- vario$v[3]
 #cat(vario$v)
 cat("Estimated Nugget:", nugget_estimate, "\n")
 cat("Fitted Sill:", fitted_sill, "\n")
+
 print('Complete!')

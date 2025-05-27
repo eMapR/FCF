@@ -2,7 +2,7 @@
 
 check_yaml_exists_and_valid <- function(path) {
   if (!file.exists(path)) {
-    stop(sprintf("? File '%s' does not exist.", path))
+    message(sprintf("? File '%s' does not exist.", path))
   }
   
   tryCatch({
@@ -10,7 +10,7 @@ check_yaml_exists_and_valid <- function(path) {
     message(">>YAML file exists and is valid<<")
     #return(config)
   }, error = function(e) {
-    stop(sprintf(">>>Failed to read YAML file: %s<<<", e$message))
+    message(sprintf(">>>Failed to read YAML file: %s<<<", e$message))
   })
 }
 
@@ -21,20 +21,14 @@ validate_config <- function(cfg) {
     output_dir = "character",
     n.samples = "numeric",
     n.threads = "numeric",
-    #max.dist = "numeric",
     
-    #phi.Unif.a.n = "numeric",
     max.effective.range = "numeric",
-    #phi.Unif.b.n = "numeric",
     min.effective.range = "numeric",
     
-    #sigma.sq.a = "numeric",
     spatial.variance.scale = "numeric",
     
-    #tau.sq.a = "numeric",
     nugget.variance.scale = "numeric",
     
-    #phi.s.n = "numeric",
     starting.decay.rate = "numeric",
     starting.spatial.variance = "numeric",
     starting.nugget.variance = "numeric",
@@ -49,43 +43,59 @@ validate_config <- function(cfg) {
   
   for (key in names(required_fields)) {
     if (!key %in% names(cfg)) {
-      stop(sprintf(">>>Missing required field: '%s'<<<", key))
+      message(sprintf(">>>Missing required field: '%s'<<<", key))
     }
     expected_type <- required_fields[[key]]
     actual_value <- cfg[[key]]
     if (expected_type == "numeric" && !is.numeric(actual_value)) {
-      stop(sprintf(">>>Field '%s' should be numeric but is %s<<<", key, class(actual_value)))
+      message(sprintf(">>>Field '%s' should be numeric but is %s<<<", key, class(actual_value)))
     }
     if (expected_type == "character" && !is.character(actual_value)) {
-      stop(sprintf(">>>Field '%s' should be character but is %s<<<", key, class(actual_value)))
+      message(sprintf(">>>Field '%s' should be character but is %s<<<", key, class(actual_value)))
     }
   }
   
   if (cfg$discard_offset >= cfg$n.samples) {
-    stop(">>>'discard_offset' must be less than 'n.samples'<<<")
+    message(">>>'discard_offset' must be less than 'n.samples'<<<")
   }
   
   message(">>Config is valid<<")
 }
 
 
+check_dir_exist <- function(path) {
+  # Check if directory exists
+  if (dir.exists(path)) {
+    message("Directory exists: ", path)
+  } else {
+    stop("Directory does not exist: ", path, 
+         "\nCheck directory path and file name.")
+  }
+}
+
+check_shapefile_exist <- function(shp_path) {
+  # Check if shapefile exists
+  if (file.exists(shp_path)) {
+    message("Shapefile exists: ", shp_path)
+  } else {
+    stop("Shapefile does not exist: ", shp_path,
+         "\nCheck directory path and file name.")
+  }
+}
+
 check_shapefile_for_features <- function(shp_path) {
-  # Read the shapefile
   shp <- vect(shp_path)
-  
   # Check the number of features
   num_features <- nrow(shp)
   
   if (num_features > 0) {
-    message(sprintf("Shapefile has %d feature(s).", num_features))
-    return(TRUE)
+    message(sprintf("Shapefile has %d feature(s): %s", num_features, shp_path))
   } else {
-    message("Shapefile has NO features.")
-    return(FALSE)
+    stop("Shapefile has NO features: ", shp_path)
   }
 }
 
-check_shapefile_for_feild <- function(shp_path, field_name) {
+check_shapefile_for_field <- function(shp_path, field_name) {
   # Read the shapefile using terra
   shp <- vect(shp_path)
   
@@ -94,14 +104,21 @@ check_shapefile_for_feild <- function(shp_path, field_name) {
   
   # Check if the field exists
   if (field_name %in% field_names) {
-    message(sprintf("Field '%s' exists in the shapefile.", field_name))
-    return(TRUE)
+    message(sprintf("Field '%s' exists in shapefile: %s", field_name, shp_path))
   } else {
-    message(sprintf("Field '%s' does NOT exist in the shapefile.", field_name))
-    return(FALSE)
+    stop(sprintf("Field '%s' does NOT exist in shapefile: %s", field_name, shp_path))
   }
 }
 
+check_raster_exist <- function(ras_path) {
+  # Check if shapefile exists
+  if (file.exists(ras_path)) {
+    message("Rasterfile exists: ", ras_path)
+  } else {
+    stop("Raster does not exist: ", ras_path,
+         "\nCheck file name.")
+  }
+}
 
 check_raster_for_band <- function(raster_path) {
   # Try to read the raster
@@ -111,11 +128,9 @@ check_raster_for_band <- function(raster_path) {
   num_bands <- nlyr(rast_obj)
   
   if (num_bands > 0) {
-    message(sprintf("Raster has %d band(s).", num_bands))
-    return(TRUE)
+    message(sprintf("Raster has band(s) %d.", num_bands))
   } else {
-    message("Raster has NO bands.")
-    return(FALSE)
+    stop("Raster has NO bands.")
   }
 }
 
@@ -124,13 +139,6 @@ load_assets <- function(site, base_path = "/vol/v1/FCF/spatial-model-walkthrough
   bnd_path <- file.path(base_path, site, "bnd/bnd.shp")
   dat_path <- file.path(base_path, site, "plots/plots.shp")
   carbon_map_path <- file.path(base_path, site, "carbon-map.tif")
-
-
-  str(dat_path)
-  check_shapefile_for_features(bnd_path)
-  check_shapefile_for_features(dat_path)
-  check_shapefile_for_feild(dat_path,"Total.Carb")
-  check_raster_for_band(carbon_map_path)
 
   bnd <- vect(bnd_path)
   dat <- vect(dat_path)
@@ -183,6 +191,7 @@ prepare_model_data <- function(obs) {
   return(list(y = y, x = x, coords = coords))
 }
 
+#old
 ffit_lm_variogram <- function(y, x, coords, max.dist = 5) {
   mod <- lm(y ~ x)
   vario <- variog(data = resid(mod), coords = coords, max.dist = max.dist)

@@ -1,6 +1,7 @@
 run_script_0 <- function(console_text, plot_label, step_script, checklist_labels, step_name) {
   # Define output paths
   output_file <- "output.txt"
+  file.remove("plot.png")
   plot_path <- "plot.png"
 
   tkdelete(console_text, "1.0", "end")
@@ -48,7 +49,54 @@ run_script_0 <- function(console_text, plot_label, step_script, checklist_labels
             update_checklist_status(checklist_labels, "Check YAML Syntax", "fail")
           }
 
+          if (grepl("Directory exists", line)) {
+            update_checklist_status(checklist_labels, "Check Directory", "pass")
+          } 
+          if (grepl("Directory does not exist", line)){
+            update_checklist_status(checklist_labels, "Check Directory", "fail")
+          }
 
+          if (grepl("Shapefile exists", line)) {
+            update_checklist_status(checklist_labels, "Check Boundary SHP", "pass")
+          } 
+          if (grepl("Shapefile does not exist", line)){
+            update_checklist_status(checklist_labels, "Check Boundary SHP", "fail")
+          }
+
+          if (grepl("Shapefile exists", line)) {
+            update_checklist_status(checklist_labels, "Check Observation SHP", "pass")
+          } 
+          if (grepl("Shapefile does not exist", line)){
+            update_checklist_status(checklist_labels, "Check Observation SHP", "fail")
+          }
+
+          if (grepl("Shapefile has", line)) {
+            update_checklist_status(checklist_labels, "Check for features Bnd.", "pass")
+          } 
+          if (grepl("Shapefile has NO features", line)){
+            update_checklist_status(checklist_labels, "Check for features Bnd.", "fail")
+          }
+
+          if (grepl("Shapefile has", line)) {
+            update_checklist_status(checklist_labels, "Check for features Obs.", "pass")
+          } 
+          if (grepl("Shapefile has NO features", line)){
+            update_checklist_status(checklist_labels, "Check for features Obs.", "fail")
+          }
+
+          if (grepl("Rasterfile exists", line)) {
+            update_checklist_status(checklist_labels, "Check Raster", "pass")
+          } 
+          if (grepl("Raster does not exist", line)){
+            update_checklist_status(checklist_labels, "Check Raster", "fail")
+          }
+
+          if (grepl("Raster has band", line)) {
+            update_checklist_status(checklist_labels, "Check Raster Bands", "pass")
+          } 
+          if (grepl("Raster has NO bands", line)){
+            update_checklist_status(checklist_labels, "Check Raster Bands", "fail")
+          }
 
         }
 
