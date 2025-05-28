@@ -60,204 +60,204 @@ Source compiled with OpenMP, posterior sampling is using 50 thread(s).
 		Sampling
 -------------------------------------------------
 Sampled: 100 of 5000, 2.00%
-Report interval Metrop. Acceptance rate: 35.00%
-Overall Metrop. Acceptance rate: 35.00%
+Report interval Metrop. Acceptance rate: 51.00%
+Overall Metrop. Acceptance rate: 51.00%
 -------------------------------------------------
 Sampled: 200 of 5000, 4.00%
-Report interval Metrop. Acceptance rate: 51.00%
-Overall Metrop. Acceptance rate: 43.00%
+Report interval Metrop. Acceptance rate: 47.00%
+Overall Metrop. Acceptance rate: 49.00%
 -------------------------------------------------
 Sampled: 300 of 5000, 6.00%
-Report interval Metrop. Acceptance rate: 44.00%
-Overall Metrop. Acceptance rate: 43.33%
+Report interval Metrop. Acceptance rate: 39.00%
+Overall Metrop. Acceptance rate: 45.67%
 -------------------------------------------------
 Sampled: 400 of 5000, 8.00%
-Report interval Metrop. Acceptance rate: 33.00%
-Overall Metrop. Acceptance rate: 40.75%
+Report interval Metrop. Acceptance rate: 47.00%
+Overall Metrop. Acceptance rate: 46.00%
 -------------------------------------------------
 Sampled: 500 of 5000, 10.00%
-Report interval Metrop. Acceptance rate: 46.00%
-Overall Metrop. Acceptance rate: 41.80%
+Report interval Metrop. Acceptance rate: 47.00%
+Overall Metrop. Acceptance rate: 46.20%
 -------------------------------------------------
 Sampled: 600 of 5000, 12.00%
-Report interval Metrop. Acceptance rate: 52.00%
-Overall Metrop. Acceptance rate: 43.50%
+Report interval Metrop. Acceptance rate: 39.00%
+Overall Metrop. Acceptance rate: 45.00%
 -------------------------------------------------
 Sampled: 700 of 5000, 14.00%
-Report interval Metrop. Acceptance rate: 41.00%
-Overall Metrop. Acceptance rate: 43.14%
+Report interval Metrop. Acceptance rate: 43.00%
+Overall Metrop. Acceptance rate: 44.71%
 -------------------------------------------------
 Sampled: 800 of 5000, 16.00%
-Report interval Metrop. Acceptance rate: 45.00%
-Overall Metrop. Acceptance rate: 43.38%
+Report interval Metrop. Acceptance rate: 39.00%
+Overall Metrop. Acceptance rate: 44.00%
 -------------------------------------------------
 Sampled: 900 of 5000, 18.00%
-Report interval Metrop. Acceptance rate: 45.00%
-Overall Metrop. Acceptance rate: 43.56%
+Report interval Metrop. Acceptance rate: 52.00%
+Overall Metrop. Acceptance rate: 44.89%
 -------------------------------------------------
 Sampled: 1000 of 5000, 20.00%
-Report interval Metrop. Acceptance rate: 50.00%
-Overall Metrop. Acceptance rate: 44.20%
+Report interval Metrop. Acceptance rate: 44.00%
+Overall Metrop. Acceptance rate: 44.80%
 -------------------------------------------------
 Sampled: 1100 of 5000, 22.00%
-Report interval Metrop. Acceptance rate: 37.00%
-Overall Metrop. Acceptance rate: 43.55%
+Report interval Metrop. Acceptance rate: 42.00%
+Overall Metrop. Acceptance rate: 44.55%
 -------------------------------------------------
 Sampled: 1200 of 5000, 24.00%
-Report interval Metrop. Acceptance rate: 57.00%
-Overall Metrop. Acceptance rate: 44.67%
+Report interval Metrop. Acceptance rate: 42.00%
+Overall Metrop. Acceptance rate: 44.33%
 -------------------------------------------------
 Sampled: 1300 of 5000, 26.00%
-Report interval Metrop. Acceptance rate: 38.00%
-Overall Metrop. Acceptance rate: 44.15%
+Report interval Metrop. Acceptance rate: 44.00%
+Overall Metrop. Acceptance rate: 44.31%
 -------------------------------------------------
 Sampled: 1400 of 5000, 28.00%
-Report interval Metrop. Acceptance rate: 41.00%
-Overall Metrop. Acceptance rate: 43.93%
+Report interval Metrop. Acceptance rate: 37.00%
+Overall Metrop. Acceptance rate: 43.79%
 -------------------------------------------------
 Sampled: 1500 of 5000, 30.00%
-Report interval Metrop. Acceptance rate: 41.00%
-Overall Metrop. Acceptance rate: 43.73%
+Report interval Metrop. Acceptance rate: 46.00%
+Overall Metrop. Acceptance rate: 43.93%
 -------------------------------------------------
 Sampled: 1600 of 5000, 32.00%
-Report interval Metrop. Acceptance rate: 49.00%
-Overall Metrop. Acceptance rate: 44.06%
+Report interval Metrop. Acceptance rate: 48.00%
+Overall Metrop. Acceptance rate: 44.19%
 -------------------------------------------------
 Sampled: 1700 of 5000, 34.00%
-Report interval Metrop. Acceptance rate: 48.00%
+Report interval Metrop. Acceptance rate: 46.00%
 Overall Metrop. Acceptance rate: 44.29%
 -------------------------------------------------
 Sampled: 1800 of 5000, 36.00%
-Report interval Metrop. Acceptance rate: 38.00%
-Overall Metrop. Acceptance rate: 43.94%
+Report interval Metrop. Acceptance rate: 51.00%
+Overall Metrop. Acceptance rate: 44.67%
 -------------------------------------------------
 Sampled: 1900 of 5000, 38.00%
-Report interval Metrop. Acceptance rate: 39.00%
-Overall Metrop. Acceptance rate: 43.68%
+Report interval Metrop. Acceptance rate: 47.00%
+Overall Metrop. Acceptance rate: 44.79%
 -------------------------------------------------
 Sampled: 2000 of 5000, 40.00%
-Report interval Metrop. Acceptance rate: 48.00%
-Overall Metrop. Acceptance rate: 43.90%
+Report interval Metrop. Acceptance rate: 41.00%
+Overall Metrop. Acceptance rate: 44.60%
 -------------------------------------------------
 Sampled: 2100 of 5000, 42.00%
-Report interval Metrop. Acceptance rate: 44.00%
-Overall Metrop. Acceptance rate: 43.90%
+Report interval Metrop. Acceptance rate: 43.00%
+Overall Metrop. Acceptance rate: 44.52%
 -------------------------------------------------
 Sampled: 2200 of 5000, 44.00%
-Report interval Metrop. Acceptance rate: 47.00%
-Overall Metrop. Acceptance rate: 44.05%
+Report interval Metrop. Acceptance rate: 40.00%
+Overall Metrop. Acceptance rate: 44.32%
 -------------------------------------------------
 Sampled: 2300 of 5000, 46.00%
-Report interval Metrop. Acceptance rate: 46.00%
+Report interval Metrop. Acceptance rate: 40.00%
 Overall Metrop. Acceptance rate: 44.13%
 -------------------------------------------------
 Sampled: 2400 of 5000, 48.00%
-Report interval Metrop. Acceptance rate: 42.00%
-Overall Metrop. Acceptance rate: 44.04%
+Report interval Metrop. Acceptance rate: 43.00%
+Overall Metrop. Acceptance rate: 44.08%
 -------------------------------------------------
 Sampled: 2500 of 5000, 50.00%
-Report interval Metrop. Acceptance rate: 44.00%
-Overall Metrop. Acceptance rate: 44.04%
+Report interval Metrop. Acceptance rate: 41.00%
+Overall Metrop. Acceptance rate: 43.96%
 -------------------------------------------------
 Sampled: 2600 of 5000, 52.00%
-Report interval Metrop. Acceptance rate: 56.00%
-Overall Metrop. Acceptance rate: 44.50%
+Report interval Metrop. Acceptance rate: 36.00%
+Overall Metrop. Acceptance rate: 43.65%
 -------------------------------------------------
 Sampled: 2700 of 5000, 54.00%
-Report interval Metrop. Acceptance rate: 52.00%
-Overall Metrop. Acceptance rate: 44.78%
+Report interval Metrop. Acceptance rate: 42.00%
+Overall Metrop. Acceptance rate: 43.59%
 -------------------------------------------------
 Sampled: 2800 of 5000, 56.00%
-Report interval Metrop. Acceptance rate: 47.00%
-Overall Metrop. Acceptance rate: 44.86%
+Report interval Metrop. Acceptance rate: 42.00%
+Overall Metrop. Acceptance rate: 43.54%
 -------------------------------------------------
 Sampled: 2900 of 5000, 58.00%
-Report interval Metrop. Acceptance rate: 42.00%
-Overall Metrop. Acceptance rate: 44.76%
+Report interval Metrop. Acceptance rate: 50.00%
+Overall Metrop. Acceptance rate: 43.76%
 -------------------------------------------------
 Sampled: 3000 of 5000, 60.00%
-Report interval Metrop. Acceptance rate: 45.00%
-Overall Metrop. Acceptance rate: 44.77%
+Report interval Metrop. Acceptance rate: 34.00%
+Overall Metrop. Acceptance rate: 43.43%
 -------------------------------------------------
 Sampled: 3100 of 5000, 62.00%
-Report interval Metrop. Acceptance rate: 36.00%
-Overall Metrop. Acceptance rate: 44.48%
+Report interval Metrop. Acceptance rate: 43.00%
+Overall Metrop. Acceptance rate: 43.42%
 -------------------------------------------------
 Sampled: 3200 of 5000, 64.00%
-Report interval Metrop. Acceptance rate: 49.00%
-Overall Metrop. Acceptance rate: 44.62%
+Report interval Metrop. Acceptance rate: 33.00%
+Overall Metrop. Acceptance rate: 43.09%
 -------------------------------------------------
 Sampled: 3300 of 5000, 66.00%
-Report interval Metrop. Acceptance rate: 50.00%
-Overall Metrop. Acceptance rate: 44.79%
+Report interval Metrop. Acceptance rate: 42.00%
+Overall Metrop. Acceptance rate: 43.06%
 -------------------------------------------------
 Sampled: 3400 of 5000, 68.00%
-Report interval Metrop. Acceptance rate: 39.00%
-Overall Metrop. Acceptance rate: 44.62%
+Report interval Metrop. Acceptance rate: 44.00%
+Overall Metrop. Acceptance rate: 43.09%
 -------------------------------------------------
 Sampled: 3500 of 5000, 70.00%
-Report interval Metrop. Acceptance rate: 44.00%
-Overall Metrop. Acceptance rate: 44.60%
+Report interval Metrop. Acceptance rate: 50.00%
+Overall Metrop. Acceptance rate: 43.29%
 -------------------------------------------------
 Sampled: 3600 of 5000, 72.00%
-Report interval Metrop. Acceptance rate: 50.00%
-Overall Metrop. Acceptance rate: 44.75%
+Report interval Metrop. Acceptance rate: 38.00%
+Overall Metrop. Acceptance rate: 43.14%
 -------------------------------------------------
 Sampled: 3700 of 5000, 74.00%
-Report interval Metrop. Acceptance rate: 48.00%
-Overall Metrop. Acceptance rate: 44.84%
+Report interval Metrop. Acceptance rate: 43.00%
+Overall Metrop. Acceptance rate: 43.14%
 -------------------------------------------------
 Sampled: 3800 of 5000, 76.00%
-Report interval Metrop. Acceptance rate: 38.00%
-Overall Metrop. Acceptance rate: 44.66%
+Report interval Metrop. Acceptance rate: 41.00%
+Overall Metrop. Acceptance rate: 43.08%
 -------------------------------------------------
 Sampled: 3900 of 5000, 78.00%
-Report interval Metrop. Acceptance rate: 37.00%
-Overall Metrop. Acceptance rate: 44.46%
+Report interval Metrop. Acceptance rate: 42.00%
+Overall Metrop. Acceptance rate: 43.05%
 -------------------------------------------------
 Sampled: 4000 of 5000, 80.00%
-Report interval Metrop. Acceptance rate: 52.00%
-Overall Metrop. Acceptance rate: 44.65%
+Report interval Metrop. Acceptance rate: 38.00%
+Overall Metrop. Acceptance rate: 42.92%
 -------------------------------------------------
 Sampled: 4100 of 5000, 82.00%
-Report interval Metrop. Acceptance rate: 50.00%
-Overall Metrop. Acceptance rate: 44.78%
+Report interval Metrop. Acceptance rate: 49.00%
+Overall Metrop. Acceptance rate: 43.07%
 -------------------------------------------------
 Sampled: 4200 of 5000, 84.00%
 Report interval Metrop. Acceptance rate: 44.00%
-Overall Metrop. Acceptance rate: 44.76%
+Overall Metrop. Acceptance rate: 43.10%
 -------------------------------------------------
 Sampled: 4300 of 5000, 86.00%
-Report interval Metrop. Acceptance rate: 46.00%
-Overall Metrop. Acceptance rate: 44.79%
+Report interval Metrop. Acceptance rate: 38.00%
+Overall Metrop. Acceptance rate: 42.98%
 -------------------------------------------------
 Sampled: 4400 of 5000, 88.00%
-Report interval Metrop. Acceptance rate: 36.00%
-Overall Metrop. Acceptance rate: 44.59%
+Report interval Metrop. Acceptance rate: 44.00%
+Overall Metrop. Acceptance rate: 43.00%
 -------------------------------------------------
 Sampled: 4500 of 5000, 90.00%
-Report interval Metrop. Acceptance rate: 47.00%
-Overall Metrop. Acceptance rate: 44.64%
+Report interval Metrop. Acceptance rate: 42.00%
+Overall Metrop. Acceptance rate: 42.98%
 -------------------------------------------------
 Sampled: 4600 of 5000, 92.00%
-Report interval Metrop. Acceptance rate: 56.00%
-Overall Metrop. Acceptance rate: 44.89%
+Report interval Metrop. Acceptance rate: 45.00%
+Overall Metrop. Acceptance rate: 43.02%
 -------------------------------------------------
 Sampled: 4700 of 5000, 94.00%
-Report interval Metrop. Acceptance rate: 41.00%
-Overall Metrop. Acceptance rate: 44.81%
+Report interval Metrop. Acceptance rate: 49.00%
+Overall Metrop. Acceptance rate: 43.15%
 -------------------------------------------------
 Sampled: 4800 of 5000, 96.00%
-Report interval Metrop. Acceptance rate: 58.00%
-Overall Metrop. Acceptance rate: 45.08%
+Report interval Metrop. Acceptance rate: 40.00%
+Overall Metrop. Acceptance rate: 43.08%
 -------------------------------------------------
 Sampled: 4900 of 5000, 98.00%
-Report interval Metrop. Acceptance rate: 43.00%
-Overall Metrop. Acceptance rate: 45.04%
+Report interval Metrop. Acceptance rate: 46.00%
+Overall Metrop. Acceptance rate: 43.14%
 -------------------------------------------------
 Sampled: 5000 of 5000, 100.00%
-Report interval Metrop. Acceptance rate: 37.00%
-Overall Metrop. Acceptance rate: 44.88%
+Report interval Metrop. Acceptance rate: 42.00%
+Overall Metrop. Acceptance rate: 43.12%
 -------------------------------------------------
 Source compiled with OpenMP, posterior sampling is using 50 thread(s).
 -------------------------------------------------

@@ -11,6 +11,8 @@ source("panels/yaml_editor_panel.R")
 source("panels/help_panel.R")
 source("handlers/run_my_script.R")
 source("handlers/run_script_0.R")
+source("handlers/run_script_1.R")
+source("handlers/run_script_2.R")
 source("handlers/yaml_handlers.R")
 source("handlers/checklist_handlers.R")
 
@@ -60,9 +62,9 @@ tkpack(help_panel$frame, expand = TRUE, fill = "both", padx = 5, pady = 5)
 tkconfigure(run_buttons$buttons$step1, 
             command = function() run_script_0(console$text_widget, plot$plot_widget, "step0.R", checklist$labels, "Check YAML File"))
 tkconfigure(run_buttons$buttons$step2, 
-            command = function() run_my_script(console$text_widget, plot$plot_widget, "step1.R", checklist$labels, "Check YAML File"))
+            command = function() run_script_1(console$text_widget, plot$plot_widget, "step1.R", checklist$labels, "Check YAML File"))
 tkconfigure(run_buttons$buttons$step3, 
-            command = function() run_my_script(console$text_widget, plot$plot_widget, "step2.R", checklist$labels, "Check Raster"))
+            command = function() run_script_2(console$text_widget, plot$plot_widget, "step2.R", checklist$labels, "Check Raster"))
 tkconfigure(run_buttons$buttons$step4, 
             command = function() run_my_script(console$text_widget, plot$plot_widget, "step3.R", checklist$labels, "Load Image"))
 

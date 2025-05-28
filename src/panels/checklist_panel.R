@@ -1,7 +1,7 @@
 create_checklist_panel <- function(parent_frame) {
   checklist_frame <- tkframe(parent_frame)
   
-  steps <- c("Check YAML File", "Check YAML Syntax", "Check Directory", "Check Boundary SHP", "Check Observation SHP",  "Check for features Bnd.", "Check for features Obs.", "Check Raster", "Check Raster Bands", "", "Next")
+  steps <- c("Check YAML File", "Check YAML Syntax", "Check Directory", "Check Boundary SHP", "Check Observation SHP",  "Check for features Bnd.", "Check for features Obs.", "Check Raster", "Check Raster Bands", "", "Compute Variogram","Estimate Nugget","Fit Sill", "" ,"Sampled Data","Recovering Beta","")
   checklist_labels <- list()
 
   for (step in steps) {
