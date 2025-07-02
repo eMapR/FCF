@@ -5,14 +5,16 @@ library(terra)
 library(geoR)
 library(spBayes)
 library(yaml)
+library(tcltk)
 
 source("mod.R")
+yaml_file <- "config.yaml"         # <- path to your YAML
 
 # check yaml file path exists
-check_yaml_exists_and_valid("config.yaml")
+check_yaml_exists_and_valid(yaml_file)
 
 # Load parameters from YAML file
-params <- yaml::read_yaml("config.yaml")
+params <- yaml::read_yaml(yaml_file)
 
 # check yaml format 
 validate_config(params)
