@@ -1,175 +1,111 @@
-# Spatial Carbon Model (R)
+Spatial Carbon Model (R)
 
-This repository contains an **R-based Bayesian spatial modeling workflow** for producing wall-to-wall carbon predictions and associated uncertainty from plot data and a gridded covariate.
+This repository contains an R-based Bayesian spatial modeling application for producing wall-to-wall carbon predictions and associated uncertainty from plot data and a gridded covariate.
 
-The workflow is intended for **land managers, analysts, and researchers** who need spatially explicit carbon estimates along with defensible uncertainty for mapping and area-based summaries.
+The application is intended to be run through a graphical user interface (GUI). Internally, the GUI orchestrates a sequence of processing steps that validate inputs, fit a spatial model, and generate prediction and uncertainty maps.
 
----
+The primary audience for this tool is land managers, analysts, and researchers who need defensible spatial carbon estimates without writing or modifying R code.
 
-## What this does (plain language)
+What the application does (plain language)
 
-You provide:
-- field plot measurements of carbon, and
-- a raster covariate covering the full landscape.
+The user provides two main inputs: field plot measurements of carbon and a raster covariate that covers the full landscape of interest.
 
-The model:
-1. learns the relationship between plot measurements and the raster,
-2. accounts for remaining spatial structure in the data, and
-3. predicts carbon everywhere ? **with uncertainty**.
+Using these inputs, the application fits a Bayesian spatial regression model that learns the relationship between the plot measurements and the raster covariate, accounts for spatial structure that is not explained by the covariate alone, and predicts carbon continuously across the landscape.
 
-Outputs include:
-- a prediction map,
-- an uncertainty map, and
-- joint predictive draws for computing uncertainty on area-based estimates.
+The outputs include a spatial prediction map, a spatial uncertainty map, and joint predictive draws that can be used to compute uncertainty for area-based summaries such as mean or total carbon within management units.
 
----
+How the application runs
 
-## Repository structure
+Users interact with the model through the GUI. The GUI is the primary entry point and is the recommended way to run the application.
 
-.
-??? R/
-? ??? step0.R # input checks & data loading
-? ??? step1.R # linear model + variogram
-? ??? step2.R # Bayesian spatial model (MCMC)
-? ??? step3.R # prediction & uncertainty maps
-? ??? mod.R # shared model utilities
-? ??? gui.R # optional GUI
-? ??? main_gui.R # GUI entry point
-??? config.yaml # run configuration (paths, priors, tuning)
-??? README.md
+Behind the scenes, the GUI executes a sequence of R scripts in a fixed order. Each script performs a specific task and writes outputs that are used by the next step in the workflow.
 
+The internal workflow is:
 
----
+GUI launches the process, then runs step0.R, followed by step1.R, then step2.R, and finally step3.R.
 
-## Requirements
+Advanced users may run these scripts manually for debugging or batch processing, but this is not required for normal use.
 
-- R (>= 4.0 recommended)
-- R packages:
-  - `terra`
-  - `geoR`
-  - `spBayes`
-  - `yaml`
-  - `tcltk` (optional; only needed for the GUI)
+Repository structure
 
-Install required packages with:
+The repository is organized as follows.
 
-```r
-install.packages(c("terra", "geoR", "spBayes", "yaml"))
-Input data layout
-Your data directory must follow this structure:
+The R directory contains all application code. The file gui.R is the primary user interface and should be launched to run the model. The file main_gui.R contains supporting GUI logic and handlers. The files step0.R through step3.R implement the internal modeling workflow. The file mod.R contains shared utility and model functions used by multiple steps.
 
-<data_dir>/<site>/
-  ??? bnd/
-  ?   ??? bnd.shp              # boundary polygon
-  ??? plots/
-  ?   ??? plots.shp            # plot points with field: Total.Carb
-  ??? carbon-map.tif           # single-band raster covariate
-Important notes
+The file config.yaml is located at the repository root and controls all model settings, paths, and tuning parameters.
 
-plots.shp must contain a field named Total.Carb
+Software requirements
 
-All spatial layers should share a common coordinate reference system
+The application requires R version 4.0 or newer.
 
-The raster must fully cover the boundary polygon
+The following R packages must be installed: terra, geoR, spBayes, yaml. The tcltk package is also required in order to use the GUI.
+
+Input data requirements
+
+Input data must be organized in a directory structure that includes a site-specific folder under a common data directory.
+
+Within each site folder, the following inputs are required.
+
+A boundary polygon shapefile located in a subdirectory named bnd. This polygon defines the spatial extent of the analysis.
+
+A plots shapefile located in a subdirectory named plots. This shapefile must contain point locations and an attribute field named Total.Carb representing measured carbon at each plot.
+
+A single-band raster file named carbon-map.tif. This raster provides the covariate used to predict carbon across the landscape.
+
+All spatial inputs must share a common coordinate reference system, and the raster must fully cover the boundary polygon.
 
 Configuration
-All model settings are controlled through config.yaml in the repository root.
 
-At minimum, update:
+All model settings are controlled through a YAML configuration file named config.yaml located at the repository root.
 
-site: example_site
-data_dir: /path/to/data
-output_dir: /path/to/output
-Additional parameters control:
+At a minimum, the user must specify the site name, the path to the data directory, and the path to the output directory.
 
-MCMC sample size
+Additional configuration parameters control the number of MCMC samples, spatial priors, tuning parameters, and burn-in and thinning behavior.
 
-spatial priors
+The GUI provides functionality to load, edit, and save the configuration file.
 
-tuning parameters
+Running the model
 
-burn-in and thinning
+To run the application, navigate to the repository root and launch the GUI by running gui.R using R.
 
-Running the workflow
-From the repository root, run the four steps in order:
+Once the GUI is open, the user can load or edit the configuration file, start the modeling workflow, and monitor progress and diagnostic output. Diagnostic plots such as the variogram and MCMC chain behavior are displayed as the workflow runs.
 
-Rscript R/step0.R
-Rscript R/step1.R
-Rscript R/step2.R
-Rscript R/step3.R
-Each step prints progress and diagnostics to the console.
+For most users, running the model through the GUI is the only required interaction.
 
-What each step does
-Step	Purpose
-0	Validate inputs and load data
-1	Fit a linear model and compute a semivariogram
-2	Fit a Bayesian spatial regression model
-3	Predict carbon and uncertainty across the landscape
+Internal workflow steps (reference)
+
+Step 0 validates inputs and loads spatial data.
+
+Step 1 fits a non-spatial linear model and computes a semivariogram of residuals.
+
+Step 2 fits a Bayesian spatial regression model using MCMC.
+
+Step 3 generates spatial prediction and uncertainty maps across the full raster extent.
+
 Outputs
-Results are written to:
 
-<output_dir>/<site>/
-Typical outputs include:
+All outputs are written to a site-specific directory under the configured output directory.
 
-pred.tif ? spatial prediction (mean)
+Typical outputs include a raster representing the mean predicted carbon, raster outputs representing predictive uncertainty, diagnostic plots from the variogram and MCMC chains, and serialized R data objects containing the fitted model and predictions.
 
-pred-joint.tif ? joint predictive draws
+Joint versus non-joint prediction
 
-semivariogram.png ? residual spatial structure
+The application produces both non-joint and joint predictions.
 
-chainImg.png ? MCMC diagnostic plot
+Non-joint predictions are appropriate for per-pixel uncertainty visualization and mapping.
 
-m.1.RData ? fitted model object
+Joint predictions are required when computing uncertainty for area-based summaries, such as mean or total carbon within management units, because they preserve spatial covariance between pixels.
 
-Joint vs non-joint prediction (important)
-Non-joint prediction
-Best for per-pixel uncertainty and map visualization.
+Intended use and limitations
 
-Joint prediction
-Required for computing uncertainty on area-based summaries
-(e.g., mean or total carbon within management units).
+This application is intended for regional and landscape-scale carbon analysis, decision support, and reporting.
 
-This workflow produces both.
-
-Optional GUI
-A lightweight GUI is included for interactive use:
-
-Rscript R/gui.R
-The GUI allows you to:
-
-edit the YAML configuration,
-
-run modeling steps,
-
-view diagnostic plots.
-
-Intended use & caveats
-This tool is intended for:
-
-regional carbon mapping,
-
-landscape-scale analysis,
-
-decision support and reporting.
-
-It is not a substitute for local field inventories and should be used with appropriate domain knowledge and validation.
+It is not a substitute for local field inventories and should be used with appropriate domain knowledge, validation, and interpretation.
 
 Citation
-If you use this workflow in a report or publication, please cite:
 
-[Author(s)]. Spatial Bayesian modeling workflow for carbon prediction. GitHub repository.
+If this application is used in a report or publication, please cite the repository and associated documentation according to your organization’s citation standards.
 
-(Replace with project-specific citation details.)
+Contact and support
 
-Contact
-For questions, issues, or contributions, please open a GitHub Issue or contact the repository maintainer.
-
-
----
-
-If you want, next we can:
-- **shorten this further** (ultra-minimal README),
-- add a **?For land managers? summary box at the top**, or
-- tailor wording to a specific agency (USFS / state DNR / NGO).
-
-But as-is, this is already a solid, professional public README.
+Questions, issues, and enhancement requests should be submitted through the project’s issue tracker or directed to the repository maintainer.
