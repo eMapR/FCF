@@ -11,12 +11,16 @@ yaml_file_path <- NULL
 # Function to run script and stream output
 run_my_script <- function(console_text, plot_label, step) {
   tkdelete(console_text, "1.0", "end")
-  if (file.exists(output_file)) file.remove(output_file)
+  if (file.exists(output_file)) {
+    Sys.sleep(0.1)  # Brief delay for Windows file locking
+    file.remove(output_file)
+  }
 
   last_line_count <- 0  # Track how many lines already displayed
 
-  # Run script in background
-  system2("Rscript", args = step, stdout = output_file, stderr = output_file, wait = FALSE)
+  # Run script in background (cross-platform)
+  rscript_path <- file.path(R.home("bin"), "Rscript")
+  system2(rscript_path, args = normalizePath(step), stdout = output_file, stderr = output_file, wait = FALSE)
 
   # Stream output and refresh plot
   stream_output <- function() {

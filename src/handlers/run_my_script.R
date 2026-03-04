@@ -1,19 +1,26 @@
 run_my_script <- function(console_text, plot_label, step_script, checklist_labels, step_name) {
   # Define output paths
   output_file <- "output.txt"
-  file.remove("plot.png")
+  if (file.exists("plot.png")) {
+    Sys.sleep(0.1)  # Brief delay for Windows file locking
+    file.remove("plot.png")
+  }
   plot_path <- "plot.png"
   tkdelete(console_text, "1.0", "end")
   
-  if (file.exists(output_file)) file.remove(output_file)
+  if (file.exists(output_file)) {
+    Sys.sleep(0.1)  # Brief delay for Windows file locking
+    file.remove(output_file)
+  }
 
   last_line_count <- 0  # Track how many lines already displayed
 
   # First update checklist to "running" state
   #update_checklist_status(checklist_labels, step_name, "running")
 
-  # Run script in background
-  system2("Rscript", args = step_script, stdout = output_file, stderr = output_file, wait = FALSE)
+  # Run script in background (cross-platform)
+  rscript_path <- file.path(R.home("bin"), "Rscript")
+  system2(rscript_path, args = normalizePath(step_script, mustWork = FALSE), stdout = output_file, stderr = output_file, wait = FALSE)
 
   # Stream output and refresh plot
   stream_output <- function() {

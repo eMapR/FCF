@@ -5,7 +5,10 @@ library(terra)
 library(geoR)
 library(spBayes)
 library(yaml)
-file.remove("plot.png")
+if (file.exists("plot.png")) {
+  Sys.sleep(0.1)  # Brief delay for Windows file locking
+  file.remove("plot.png")
+}
 source("mod.R")
 
 # check yaml file path exists

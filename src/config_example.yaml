@@ -1,0 +1,45 @@
+# Example configuration file for cross-platform use
+# 
+# IMPORTANT: Use forward slashes (/) for paths on both Windows and Linux
+# R will automatically convert them to the correct format for your OS
+#
+# For absolute paths on Windows, use: C:/Users/username/data
+# For absolute paths on Linux, use: /home/username/data
+# For relative paths (recommended), use: ./data or ../data
+
+site: black-mountains
+
+# Use relative paths for portability (recommended)
+data_dir: ./data
+output_dir: ./results
+
+# Or use absolute paths specific to your system:
+# Windows example: C:/Users/username/bayesUpdate/data
+# Linux example: /home/username/bayesUpdate/data
+
+# MCMC sampling parameters
+n.samples: 5000
+n.threads: 50
+
+# Spatial model parameters
+max.dist: 5
+max.effective.range: 100
+min.effective.range: 0.001
+
+# Prior scales (can be auto-populated from Step 2)
+spatial.variance.scale: 669.1625
+nugget.variance.scale: 856.0102
+
+# Starting values
+starting.decay.rate: 1.5
+starting.spatial.variance: 4000
+starting.nugget.variance: 4000
+
+# Tuning parameters
+decay.rate.tuning: 0.06
+spatial.variance.tuning: 0.06
+nugget.variance.tuning: 0.06
+
+# Chain processing
+discard_offset: 60
+chain_sample: 8

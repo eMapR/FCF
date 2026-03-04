@@ -24,10 +24,10 @@ site <- params$site
 results_dir <- file.path(params$output_dir, site)
 if (!dir.exists(results_dir)) dir.create(results_dir, recursive = TRUE)
 
-data_dir <- file.path(params$data_dir, site)
-bnd_path <- file.path(data_dir, "bnd/bnd.shp")
-dat_path <- file.path(data_dir, "plots/plots.shp")
-carbon_map_path <- file.path(data_dir, "carbon-map.tif")
+data_dir <- normalizePath(file.path(params$data_dir, site), mustWork = FALSE)
+bnd_path <- normalizePath(file.path(data_dir, "bnd", "bnd.shp"), mustWork = FALSE)
+dat_path <- normalizePath(file.path(data_dir, "plots", "plots.shp"), mustWork = FALSE)
+carbon_map_path <- normalizePath(file.path(data_dir, "carbon-map.tif"), mustWork = FALSE)
 
 
 # Check base directory

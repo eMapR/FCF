@@ -136,9 +136,9 @@ check_raster_for_band <- function(raster_path) {
 
 
 load_assets <- function(site, base_path = "/vol/v1/FCF/spatial-model-walkthrough/assets/test-bed-models/data/") {
-  bnd_path <- file.path(base_path, site, "bnd/bnd.shp")
-  dat_path <- file.path(base_path, site, "plots/plots.shp")
-  carbon_map_path <- file.path(base_path, site, "carbon-map.tif")
+  bnd_path <- normalizePath(file.path(base_path, site, "bnd", "bnd.shp"), mustWork = FALSE)
+  dat_path <- normalizePath(file.path(base_path, site, "plots", "plots.shp"), mustWork = FALSE)
+  carbon_map_path <- normalizePath(file.path(base_path, site, "carbon-map.tif"), mustWork = FALSE)
 
   bnd <- vect(bnd_path)
   dat <- vect(dat_path)
