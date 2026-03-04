@@ -1,0 +1,18 @@
+terra 1.8.29
+--------------------------------------------------------------
+ Analysis of Geostatistical Data
+ For an Introduction to geoR go to http://www.leg.ufpr.br/geoR
+ geoR version 1.9-4 (built on 2024-02-14) is now loaded
+--------------------------------------------------------------
+
+>>YAML file exists and is valid<<
+>>Config is valid<<
+Directory exists: /vol/v1/FCF/bayesUpdate/data/black-mountains
+Shapefile exists: /vol/v1/FCF/bayesUpdate/data/black-mountains/bnd/bnd.shp
+Shapefile exists: /vol/v1/FCF/bayesUpdate/data/black-mountains/plots/plots.shp
+Shapefile has 1 feature(s): /vol/v1/FCF/bayesUpdate/data/black-mountains/bnd/bnd.shp
+Shapefile has 164 feature(s): /vol/v1/FCF/bayesUpdate/data/black-mountains/plots/plots.shp
+Field 'Total.Carb' exists in shapefile: /vol/v1/FCF/bayesUpdate/data/black-mountains/plots/plots.shp
+Rasterfile exists: /vol/v1/FCF/bayesUpdate/data/black-mountains/carbon-map.tif
+Raster has band(s) 1.
+[1] "Complete!"
