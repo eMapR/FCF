@@ -417,7 +417,7 @@ make_streamer <- function(console_text, plot_label, output_file, step_id) {
 
         if (grepl("^STEP_COMPLETE:", line)) {
           finish_run("complete", sprintf("%s finished.", step_definitions[[step_id]]$label))
-        } else if (grepl("Execution halted", line) || grepl("^Error", line)) {
+        } else if (grepl("Execution halted", line) || grepl("^Error", line) || grepl("^Error in ", line)) {
           finish_run("failed", sprintf("%s failed.", step_definitions[[step_id]]$label))
         }
       }

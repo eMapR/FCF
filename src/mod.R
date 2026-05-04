@@ -1,9 +1,9 @@
 ## spatial_model_functions.R
 
 emit_status <- function(...) {
-  cat(..., "\n", sep = "")
+  cat(..., "\n", sep = "", file = stderr())
   flush.console()
-  try(flush(stdout()), silent = TRUE)
+  try(flush(stderr()), silent = TRUE)
 }
 
 check_yaml_exists_and_valid <- function(path) {
