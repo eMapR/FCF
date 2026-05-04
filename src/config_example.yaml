@@ -9,7 +9,12 @@
 
 site: black-mountains
 
-# Use relative paths for portability (recommended)
+# Use relative paths for portability (recommended).
+# data_dir should be the parent directory that contains one folder per site.
+# The program will look for:
+#   data_dir/site/bnd/bnd.shp
+#   data_dir/site/plots/plots.shp
+#   data_dir/site/carbon-map.tif
 data_dir: ./data
 output_dir: ./results
 
@@ -17,25 +22,28 @@ output_dir: ./results
 # Windows example: C:/Users/username/bayesUpdate/data
 # Linux example: /home/username/bayesUpdate/data
 
-# MCMC sampling parameters
+# Basic run settings that most users may change
 n.samples: 5000
 n.threads: 50
 
-# Spatial model parameters
+# Variogram diagnostic setting for Step 1
 max.dist: 5
+
+# Advanced spatial prior settings
 max.effective.range: 100
 min.effective.range: 0.001
 
-# Prior scales (can be auto-populated from Step 2)
+# Prior scales used by Step 2.
+# These are more advanced settings and often should be adjusted only after Step 1.
 spatial.variance.scale: 669.1625
 nugget.variance.scale: 856.0102
 
-# Starting values
+# Advanced Step 2 starting values
 starting.decay.rate: 1.5
 starting.spatial.variance: 4000
 starting.nugget.variance: 4000
 
-# Tuning parameters
+# Advanced Step 2 tuning parameters
 decay.rate.tuning: 0.06
 spatial.variance.tuning: 0.06
 nugget.variance.tuning: 0.06

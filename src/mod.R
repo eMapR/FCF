@@ -1,16 +1,22 @@
 ## spatial_model_functions.R
 
+emit_status <- function(...) {
+  cat(..., "\n", sep = "")
+  flush.console()
+  try(flush(stdout()), silent = TRUE)
+}
+
 check_yaml_exists_and_valid <- function(path) {
   if (!file.exists(path)) {
-    message(sprintf("? File '%s' does not exist.", path))
+    stop(sprintf("YAML file does not exist: %s", path))
   }
-  
+
   tryCatch({
-    config <- yaml::read_yaml(path)
-    message(">>YAML file exists and is valid<<")
-    #return(config)
+    yaml::read_yaml(path)
+    emit_status(sprintf("YAML file exists and is valid: %s", path))
+    TRUE
   }, error = function(e) {
-    message(sprintf(">>>Failed to read YAML file: %s<<<", e$message))
+    stop(sprintf("Failed to read YAML file '%s': %s", path, e$message))
   })
 }
 
@@ -21,6 +27,7 @@ validate_config <- function(cfg) {
     output_dir = "character",
     n.samples = "numeric",
     n.threads = "numeric",
+    max.dist = "numeric",
     
     max.effective.range = "numeric",
     min.effective.range = "numeric",
@@ -41,25 +48,46 @@ validate_config <- function(cfg) {
     chain_sample = "numeric"
   )
   
+  issues <- character(0)
+
   for (key in names(required_fields)) {
     if (!key %in% names(cfg)) {
-      message(sprintf(">>>Missing required field: '%s'<<<", key))
+      issues <- c(issues, sprintf("Missing required field: '%s'", key))
+      next
     }
+
     expected_type <- required_fields[[key]]
     actual_value <- cfg[[key]]
+    if (is.null(actual_value)) {
+      issues <- c(issues, sprintf("Field '%s' is null", key))
+      next
+    }
+
     if (expected_type == "numeric" && !is.numeric(actual_value)) {
-      message(sprintf(">>>Field '%s' should be numeric but is %s<<<", key, class(actual_value)))
+      issues <- c(issues, sprintf("Field '%s' should be numeric but is %s", key, class(actual_value)))
     }
     if (expected_type == "character" && !is.character(actual_value)) {
-      message(sprintf(">>>Field '%s' should be character but is %s<<<", key, class(actual_value)))
+      issues <- c(issues, sprintf("Field '%s' should be character but is %s", key, class(actual_value)))
     }
   }
   
-  if (cfg$discard_offset >= cfg$n.samples) {
-    message(">>>'discard_offset' must be less than 'n.samples'<<<")
+  if (!is.null(cfg$discard_offset) &&
+      !is.null(cfg$n.samples) &&
+      is.numeric(cfg$discard_offset) &&
+      is.numeric(cfg$n.samples) &&
+      cfg$discard_offset >= cfg$n.samples) {
+    issues <- c(issues, "'discard_offset' must be less than 'n.samples'")
+  }
+
+  if (length(issues) > 0) {
+    for (issue in issues) {
+      emit_status(issue)
+    }
+    return(FALSE)
   }
   
-  message(">>Config is valid<<")
+  emit_status("Config is valid.")
+  TRUE
 }
 
 
@@ -132,6 +160,69 @@ check_raster_for_band <- function(raster_path) {
   } else {
     stop("Raster has NO bands.")
   }
+}
+
+have_same_crs <- function(x, y) {
+  if ("same.crs" %in% getNamespaceExports("terra")) {
+    return(isTRUE(terra::same.crs(x, y)))
+  }
+
+  identical(terra::crs(x, proj = TRUE), terra::crs(y, proj = TRUE))
+}
+
+check_crs_match <- function(bnd_path, dat_path, raster_path) {
+  bnd <- vect(bnd_path)
+  dat <- vect(dat_path)
+  ras <- rast(raster_path)
+
+  bnd_dat_ok <- have_same_crs(bnd, dat)
+  bnd_ras_ok <- have_same_crs(bnd, ras)
+
+  if (!bnd_dat_ok || !bnd_ras_ok) {
+    stop(
+      paste(
+        "CRS mismatch detected.",
+        sprintf("Boundary CRS: %s", crs(bnd, proj = TRUE)),
+        sprintf("Plots CRS: %s", crs(dat, proj = TRUE)),
+        sprintf("Raster CRS: %s", crs(ras, proj = TRUE)),
+        sep = "\n"
+      )
+    )
+  }
+
+  emit_status("All spatial inputs use the same CRS.")
+}
+
+check_raster_covers_boundary <- function(bnd_path, raster_path) {
+  bnd <- vect(bnd_path)
+  ras <- rast(raster_path)
+
+  bnd_ext <- ext(bnd)
+  ras_ext <- ext(ras)
+
+  covers <- xmin(bnd_ext) >= xmin(ras_ext) &&
+    xmax(bnd_ext) <= xmax(ras_ext) &&
+    ymin(bnd_ext) >= ymin(ras_ext) &&
+    ymax(bnd_ext) <= ymax(ras_ext)
+
+  if (!covers) {
+    stop(
+      paste(
+        "Raster extent does not fully cover the boundary polygon extent.",
+        sprintf(
+          "Boundary extent: xmin=%s xmax=%s ymin=%s ymax=%s",
+          xmin(bnd_ext), xmax(bnd_ext), ymin(bnd_ext), ymax(bnd_ext)
+        ),
+        sprintf(
+          "Raster extent: xmin=%s xmax=%s ymin=%s ymax=%s",
+          xmin(ras_ext), xmax(ras_ext), ymin(ras_ext), ymax(ras_ext)
+        ),
+        sep = "\n"
+      )
+    )
+  }
+
+  emit_status("Raster extent fully covers the boundary polygon extent.")
 }
 
 
@@ -243,8 +334,6 @@ fit_lm_variogram <- function(y, x, coords, max.dist = 5) {
     model = mod,
     variogram = vario,
     nugget_estimate = nugget_estimate,
-    #sill_estimate = sill_estimate,
-    #fitted_nugget = nugget_fit,
     fitted_sill = total_sill_fit
   ))
 }
@@ -259,6 +348,7 @@ fit_spatial_model <- function(y, x, coords, par) {
 
   starting <- list("phi" = 3/par$starting.decay.rate, "sigma.sq" = par$starting.spatial.variance, "tau.sq" = par$starting.nugget.variance)
   tuning <- list("phi" = par$decay.rate.tuning, "sigma.sq" = par$spatial.variance.tuning, "tau.sq"=par$nugget.variance.tuning)
+  emit_status("Sampling posterior parameters.")
   m.1 <- spSVC(y ~ x, coords = coords, starting = starting, tuning = tuning,
                n.omp.threads = par$n.threads, priors = priors,
                cov.model = "exponential", n.samples = par$n.samples)
@@ -266,6 +356,7 @@ fit_spatial_model <- function(y, x, coords, par) {
   png("plot.png", width = 800, height = 600)
   plot(m.1$p.theta.samples)
   dev.off()
+  emit_status("Recovering posterior summaries.")
   m.1 <- spRecover(m.1, start = par$discard_offset, thin = par$chain_sample, n.omp.threads = par$n.threads)
   return(m.1)
 }

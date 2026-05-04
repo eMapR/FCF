@@ -4,7 +4,7 @@
 
 This repository contains an R-based application for fitting a Bayesian spatial model to plot-level carbon data and producing spatial predictions and uncertainty maps across a landscape.
 
-The application is designed to be run through a graphical user interface (GUI). Users interact with the GUI to configure inputs, run the model, and view diagnostic output. Internally, the GUI executes a series of R scripts that implement the modeling workflow.
+The application is designed to be run through a graphical user interface (GUI). Users interact with the GUI to configure inputs, run model steps in order, and view diagnostic output. Internally, the GUI executes a series of R scripts that implement the modeling workflow.
 
 The primary intended users are land managers, analysts, and researchers who need spatially explicit carbon estimates with associated uncertainty, but who do not want to modify or write R code.
 
@@ -35,7 +35,7 @@ Outputs are intended to support mapping, reporting, and area-based summaries suc
 
 - R (version 4.0 or newer recommended)
 - Internet access (for first-time package installation)
-- A Unix-like shell environment (Linux or macOS recommended)
+- A working Tcl/Tk installation for the GUI
 
 Verify R is installed:
 
@@ -53,7 +53,13 @@ If you see an error such as:
 Error in library(yaml) : there is no package called ‘yaml’
 ```
 
-you must install required R packages.
+you must install the workflow packages:
+
+```
+tcltk, yaml, terra, geoR, spBayes
+```
+
+`tcltk` usually ships with R; the others typically need installation.
 
 #### Recommended Method (User Library, No sudo Required)
 
@@ -66,7 +72,7 @@ mkdir -p ~/R/x86_64-pc-linux-gnu-library
 Install required packages:
 
 ```
-Rscript -e "install.packages(c('yaml'), repos='https://cloud.r-project.org', lib='~/R/x86_64-pc-linux-gnu-library')"
+Rscript -e "install.packages(c('yaml','terra','geoR','spBayes'), repos='https://cloud.r-project.org', lib='~/R/x86_64-pc-linux-gnu-library')"
 ```
 
 Set the user library for your session:
@@ -75,10 +81,10 @@ Set the user library for your session:
 export R_LIBS_USER=~/R/x86_64-pc-linux-gnu-library
 ```
 
-Then launch the GUI:
+Then launch the GUI from the repository root:
 
 ```
-Rscript gui.R
+Rscript src/gui.R
 ```
 
 ------
@@ -99,10 +105,10 @@ echo 'export R_LIBS_USER=~/R/x86_64-pc-linux-gnu-library' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-After this, simply run:
+After this, simply run from the repository root:
 
 ```
-Rscript gui.R
+Rscript src/gui.R
 ```
 
 ------
@@ -146,7 +152,7 @@ Behind the scenes, the GUI runs a sequence of R scripts that implement the workf
 Launch the GUI from the repository root:
 
 ```
-Rscript gui.R
+Rscript src/gui.R
 ```
 
 ------
@@ -158,6 +164,8 @@ The modeling workflow consists of four sequential steps.
 ### Step 0
 
 - Validates input files and directory structure
+- Verifies that the boundary, plots, and raster share the same CRS
+- Verifies that the raster fully covers the boundary extent
 - Loads spatial data (boundary, plots, raster)
 - Extracts raster values at plot locations
 
@@ -176,8 +184,9 @@ The modeling workflow consists of four sequential steps.
 ### Step 3
 
 - Uses the fitted model to predict carbon across the raster grid
-- Produces spatial prediction and uncertainty outputs
-- Generates both joint and non-joint predictive products
+- Produces `pred.tif`, a per-pixel output containing mean and uncertainty layers
+- Produces `pred-joint.tif`, a joint predictive output that is better suited to uncertainty-aware aggregation
+- Generates both products from the same button click in the GUI
 
 Each step depends on outputs from the previous step and is coordinated by the GUI.
 
@@ -187,14 +196,14 @@ Each step depends on outputs from the previous step and is coordinated by the GU
 
 The repository contains:
 
-- `gui.R` – launches the graphical user interface
-- `main_gui.R` – supporting GUI logic and handlers
-- `step0.R` through `step3.R` – scripts implementing the modeling workflow
-- `mod.R` – shared utility and modeling functions
-- `config.yaml` – configuration file controlling model settings and paths
+- `src/gui.R` – launches the current graphical user interface
+- `src/main_gui.R` – older GUI implementation retained for reference
+- `src/step0.R` through `src/step3.R` – scripts implementing the modeling workflow
+- `src/mod.R` – shared utility and modeling functions
+- `src/config.yaml` – default configuration file controlling model settings and paths
 - `README.md` – this file
 
-All application code resides in the R directory.
+Most application code resides under `src/`.
 
 ------
 
@@ -208,16 +217,53 @@ Each site directory must include:
 - A plots shapefile containing point locations and a field named `Total.Carb` representing measured carbon
 - A single-band raster file used as the predictor covariate
 
+The GUI expects `data_dir` to be the parent directory that contains site folders, and `site` to name the specific folder to use.
+
+For example, if:
+
+- `data_dir: /path/to/data`
+- `site: black-mountains`
+
+then the program will look for:
+
+```
+/path/to/data/black-mountains/bnd/bnd.shp
+/path/to/data/black-mountains/plots/plots.shp
+/path/to/data/black-mountains/carbon-map.tif
+```
+
 Requirements:
 
 - All spatial data must use a common coordinate reference system (CRS).
 - The raster must fully cover the boundary polygon.
+- The GUI checks both of these conditions during Step 0 and stops early with a readable error if they fail.
 
 ------
 
 ## Configuration
 
 Model settings are controlled through a YAML configuration file.
+
+The GUI includes:
+
+- A YAML editor
+- Quick fields for `site`, `data_dir`, and `output_dir`
+- `Load Template`, `Save`, and `Save As` actions
+
+For most first runs, only these values usually need to change:
+
+- `site`
+- `data_dir`
+- `output_dir`
+- `n.samples`
+- `n.threads`
+
+The variogram-related variance settings are more advanced. A common workflow is:
+
+1. Run Step 0 to validate inputs.
+2. Run Step 1 to inspect the variogram and estimated nugget/sill.
+3. Adjust advanced settings if needed.
+4. Run Step 2 and Step 3.
 
 The configuration file specifies:
 

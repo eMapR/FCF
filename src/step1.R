@@ -5,19 +5,23 @@ library(terra)
 library(geoR)
 library(spBayes)
 library(yaml)
-library(tcltk)
 
 source("mod.R")
-yaml_file <- "config.yaml"         # <- path to your YAML
+config_path <- Sys.getenv("FCF_CONFIG_PATH", unset = "config.yaml")
+emit_status("Step 1: fitting the non-spatial model and computing the variogram.")
+emit_status("Typical runtime: seconds to a few minutes.")
+emit_status(sprintf("Using config file: %s", config_path))
 
 # check yaml file path exists
-check_yaml_exists_and_valid(yaml_file)
+check_yaml_exists_and_valid(config_path)
 
 # Load parameters from YAML file
-params <- yaml::read_yaml(yaml_file)
+params <- yaml::read_yaml(config_path)
 
 # check yaml format 
-validate_config(params)
+if (!validate_config(params)) {
+  stop("Configuration validation failed.")
+}
 
 # Extract parameters
 site <- params$site
@@ -40,16 +44,16 @@ coords <- model_data$coords
 # 2. Fit linear model and check variogram
 result <- fit_lm_variogram(y, x, coords, max.dist = params$max.dist)
 
-file.copy("plot.png", file.path(results_dir,"semivariogram.png"))
+invisible(file.copy("plot.png", file.path(results_dir, "semivariogram.png"), overwrite = TRUE))
 
 
 vario <- result$variogram
 
 # Estimate directly:
 nugget_estimate <- vario$v[1]
-fitted_sill <- vario$v[3]
-#cat(vario$v)
-cat("Estimated Nugget:", nugget_estimate, "\n")
-cat("Fitted Sill:", fitted_sill, "\n")
+fitted_sill <- result$fitted_sill
+emit_status(sprintf("Estimated Nugget: %.6f", nugget_estimate))
+emit_status(sprintf("Fitted Sill: %.6f", fitted_sill))
 
-print('Complete!')
+emit_status("Step 1 complete.")
+emit_status("STEP_COMPLETE: step1")

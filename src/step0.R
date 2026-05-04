@@ -8,14 +8,20 @@ library(yaml)
 
 source("mod.R")
 
+config_path <- Sys.getenv("FCF_CONFIG_PATH", unset = "config.yaml")
+emit_status("Step 0: validating inputs and loading assets.")
+emit_status(sprintf("Using config file: %s", config_path))
+
 # check yaml file path exists
-check_yaml_exists_and_valid("config.yaml")
+check_yaml_exists_and_valid(config_path)
 
 # Load parameters from YAML file
-params <- yaml::read_yaml("config.yaml")
+params <- yaml::read_yaml(config_path)
 
 # check yaml format 
-validate_config(params)
+if (!validate_config(params)) {
+  stop("Configuration validation failed.")
+}
 
 # Extract parameters
 site <- params$site
@@ -54,6 +60,11 @@ check_raster_exist(carbon_map_path)
 # Check raster for expected bands
 check_raster_for_band(carbon_map_path)
 
+# Check CRS consistency across inputs
+check_crs_match(bnd_path, dat_path, carbon_map_path)
+
+# Check raster coverage over boundary
+check_raster_covers_boundary(bnd_path, carbon_map_path)
 
 
 
@@ -87,4 +98,5 @@ coords <- model_data$coords
 #     xlab = "y", col = "steelblue", border = "white")
 #dev.off()
 
-print('Complete!')
+emit_status("Input validation complete.")
+emit_status("STEP_COMPLETE: step0")

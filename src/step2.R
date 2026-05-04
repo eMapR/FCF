@@ -7,19 +7,25 @@ library(spBayes)
 library(yaml)
 if (file.exists("plot.png")) {
   Sys.sleep(0.1)  # Brief delay for Windows file locking
-  file.remove("plot.png")
+  invisible(file.remove("plot.png"))
 }
 
 source("mod.R")
+config_path <- Sys.getenv("FCF_CONFIG_PATH", unset = "config.yaml")
+emit_status("Step 2: fitting the Bayesian spatial model.")
+emit_status("Typical runtime: minutes to many hours, depending on raster size and sampling settings.")
+emit_status(sprintf("Using config file: %s", config_path))
 
 # check yaml file path exists
-check_yaml_exists_and_valid("config.yaml")
+check_yaml_exists_and_valid(config_path)
 
 # Load parameters from YAML file
-params <- yaml::read_yaml("config.yaml")
+params <- yaml::read_yaml(config_path)
 
 # check yaml format 
-validate_config(params)
+if (!validate_config(params)) {
+  stop("Configuration validation failed.")
+}
 
 # Extract parameters
 site <- params$site
@@ -55,11 +61,14 @@ coords <- as.matrix(df_unique[, c("coord1", "coord2")])
 
 
 # 3. Fit spatial model
-params2 <- make_params("config.yaml")
+params2 <- make_params(config_path)
 
+emit_status("Starting MCMC sampling.")
 m.1 <- fit_spatial_model(y, x, coords, params2)
 save(m.1, file = file.path(results_dir, "m.1.RData"))
 
-file.copy("plot.png", file.path(results_dir,"chainImg.png"))
+invisible(file.copy("plot.png", file.path(results_dir, "chainImg.png"), overwrite = TRUE))
 
-print("Complete!")
+emit_status("Spatial model saved to disk.")
+emit_status("Step 2 complete.")
+emit_status("STEP_COMPLETE: step2")

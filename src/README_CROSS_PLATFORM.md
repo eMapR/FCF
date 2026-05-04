@@ -58,22 +58,23 @@ output_dir: /vol/v1/FCF/bayesUpdate/results
 
 3. **Required R Packages:**
    ```r
-   install.packages(c("tcltk", "yaml", "terra", "geoR", "spBayes"))
+   install.packages(c("yaml", "terra", "geoR", "spBayes"))
    ```
+   `tcltk` usually ships with R itself.
 
 ## Running the Application
 
 ### On Linux:
 ```bash
-Rscript main_gui.R
+Rscript src/gui.R
 ```
 
 ### On Windows:
 ```cmd
-Rscript main_gui.R
+Rscript src/gui.R
 ```
 
-Or double-click `main_gui.R` if R is associated with .R files.
+Or launch `src/gui.R` from R if `.R` files are associated with R on your machine.
 
 ## Troubleshooting
 
@@ -107,5 +108,5 @@ Or double-click `main_gui.R` if R is associated with .R files.
 1. Copy `config_example.yaml` to `config.yaml`
 2. Update paths in `config.yaml` for your system
 3. Ensure your data directory structure matches the required format
-4. Run `Rscript main_gui.R`
+4. Run `Rscript src/gui.R`
 5. Click "Check Assets" to validate your configuration
