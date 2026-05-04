@@ -548,6 +548,7 @@ build_help_text <- function() {
 tt <- tktoplevel()
 tkwm.title(tt, "Bayesian Spatial Carbon Modeling")
 tkwm.minsize(tt, 1200, 760)
+tkwm.geometry(tt, "1500x950")
 
 main_frame <- tkframe(tt)
 tkgrid(main_frame, row = 0, column = 0, sticky = "nsew", padx = 10, pady = 10)
@@ -555,8 +556,8 @@ tkgrid(main_frame, row = 0, column = 0, sticky = "nsew", padx = 10, pady = 10)
 tkgrid.rowconfigure(tt, 0, weight = 1)
 tkgrid.columnconfigure(tt, 0, weight = 1)
 tkgrid.rowconfigure(main_frame, 0, weight = 1)
-tkgrid.columnconfigure(main_frame, 0, weight = 3)
-tkgrid.columnconfigure(main_frame, 1, weight = 2)
+tkgrid.columnconfigure(main_frame, 0, weight = 2)
+tkgrid.columnconfigure(main_frame, 1, weight = 3)
 
 left_frame <- tkframe(main_frame)
 right_frame <- tkframe(main_frame)
