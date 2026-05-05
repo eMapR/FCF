@@ -99,14 +99,19 @@ safe_read_log <- function(path) {
     return(NULL)
   }
 
-  tmp_copy <- tempfile(fileext = ".log")
-  ok <- suppressWarnings(
+  direct_lines <- suppressWarnings(
     tryCatch(
-      file.copy(path, tmp_copy, overwrite = TRUE),
-      error = function(e) FALSE
+      readLines(path, warn = FALSE),
+      error = function(e) NULL
     )
   )
 
+  if (!is.null(direct_lines)) {
+    return(direct_lines)
+  }
+
+  tmp_copy <- tempfile(fileext = ".log")
+  ok <- suppressWarnings(tryCatch(file.copy(path, tmp_copy, overwrite = TRUE), error = function(e) FALSE))
   if (!isTRUE(ok) || !file.exists(tmp_copy)) {
     return(NULL)
   }
@@ -392,6 +397,7 @@ show_environment_info <- function(console_text) {
 make_streamer <- function(console_text, plot_label, output_file, step_id) {
   last_line_count <- 0
   finished <- FALSE
+  empty_poll_count <- 0
 
   finish_run <- function(status, message) {
     if (finished) {
@@ -409,6 +415,7 @@ make_streamer <- function(console_text, plot_label, output_file, step_id) {
     lines <- safe_read_log(output_file)
 
     if (!is.null(lines) && length(lines) > last_line_count) {
+      empty_poll_count <<- 0
       new_lines <- lines[(last_line_count + 1):length(lines)]
       for (line in new_lines) {
         if (debug_output || !grepl("^STEP_COMPLETE:", line)) {
@@ -422,6 +429,13 @@ make_streamer <- function(console_text, plot_label, output_file, step_id) {
         }
       }
       last_line_count <<- length(lines)
+    } else if (!finished) {
+      empty_poll_count <<- empty_poll_count + 1
+      if (empty_poll_count == 6) {
+        append_console(console_text, "Waiting for step output...\n")
+      } else if (empty_poll_count == 20) {
+        append_console(console_text, "No output yet. If this persists, check package installation and config paths.\n")
+      }
     }
 
     refresh_plot(plot_label)
@@ -471,6 +485,17 @@ run_step <- function(console_text, plot_label, yaml_text, step_id) {
   append_console(console_text, sprintf("%s\n", step_info$estimate))
   append_console(console_text, sprintf("Config file: %s\n\n", runtime_yaml_path))
 
+  missing_packages <- required_packages[!vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)]
+  if (length(missing_packages) > 0) {
+    append_console(
+      console_text,
+      sprintf("Error: missing required packages: %s\n", paste(missing_packages, collapse = ", "))
+    )
+    mark_step_status(step_id, "failed")
+    set_status(sprintf("%s failed to start.", step_info$label))
+    return(invisible(NULL))
+  }
+
   step_path <- file.path(script_dir, step_info$file)
   if (!file.exists(step_path)) {
     append_console(console_text, sprintf("Error: missing step script %s\n", step_path))
@@ -490,6 +515,14 @@ run_step <- function(console_text, plot_label, yaml_text, step_id) {
   if (!file.exists(rscript_path)) {
     rscript_path <- file.path(R.home("bin"), "Rscript")
   }
+  if (!file.exists(rscript_path)) {
+    append_console(console_text, sprintf("Error: Rscript not found at %s\n", rscript_path))
+    app_state$running_step <- NULL
+    mark_step_status(step_id, "failed")
+    set_status(sprintf("%s failed to start.", step_info$label))
+    return(invisible(NULL))
+  }
+  append_console(console_text, sprintf("Launching with: %s\n\n", rscript_path))
 
   old_wd <- getwd()
   on.exit(setwd(old_wd), add = TRUE)
