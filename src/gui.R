@@ -167,6 +167,70 @@ yaml_scalar <- function(value) {
   as.character(value[[1]])
 }
 
+is_absolute_path <- function(path) {
+  grepl("^([A-Za-z]:[/\\\\]|/|\\\\\\\\)", path)
+}
+
+resolve_runtime_path <- function(path) {
+  path <- yaml_scalar(path)
+  if (identical(path, "")) {
+    return("")
+  }
+
+  expanded <- path.expand(path)
+  if (is_absolute_path(expanded)) {
+    return(normalizePath(expanded, winslash = "/", mustWork = FALSE))
+  }
+
+  normalizePath(file.path(script_dir, expanded), winslash = "/", mustWork = FALSE)
+}
+
+append_path_check <- function(console_text, label, path, exists) {
+  append_console(
+    console_text,
+    sprintf("%s: %s [%s]\n", label, path, if (exists) "found" else "missing")
+  )
+}
+
+report_step0_preflight <- function(console_text, runtime_yaml_path) {
+  yaml_object <- tryCatch(
+    yaml::read_yaml(runtime_yaml_path),
+    error = function(e) e
+  )
+
+  if (inherits(yaml_object, "error")) {
+    append_console(console_text, sprintf("Preflight: failed to read YAML: %s\n\n", yaml_object$message))
+    return(invisible(FALSE))
+  }
+
+  site <- yaml_scalar(yaml_object$site)
+  data_dir <- resolve_runtime_path(yaml_object$data_dir)
+  output_dir <- resolve_runtime_path(yaml_object$output_dir)
+  site_dir <- if (identical(site, "") || identical(data_dir, "")) "" else file.path(data_dir, site)
+  boundary_path <- if (identical(site_dir, "")) "" else file.path(site_dir, "bnd", "bnd.shp")
+  plots_path <- if (identical(site_dir, "")) "" else file.path(site_dir, "plots", "plots.shp")
+  raster_path <- if (identical(site_dir, "")) "" else file.path(site_dir, "carbon-map.tif")
+
+  append_console(console_text, "Step 0 preflight:\n")
+  append_console(console_text, sprintf("site: %s\n", if (identical(site, "")) "<missing>" else site))
+  append_path_check(console_text, "data_dir", data_dir, !identical(data_dir, "") && dir.exists(data_dir))
+  append_path_check(console_text, "site_dir", site_dir, !identical(site_dir, "") && dir.exists(site_dir))
+  append_path_check(console_text, "boundary", boundary_path, !identical(boundary_path, "") && file.exists(boundary_path))
+  append_path_check(console_text, "plots", plots_path, !identical(plots_path, "") && file.exists(plots_path))
+  append_path_check(console_text, "carbon_map", raster_path, !identical(raster_path, "") && file.exists(raster_path))
+
+  if (!identical(output_dir, "")) {
+    output_parent <- dirname(output_dir)
+    output_ok <- dir.exists(output_dir) || dir.exists(output_parent)
+    append_path_check(console_text, "output_dir", output_dir, output_ok)
+  } else {
+    append_console(console_text, "output_dir: <missing> [missing]\n")
+  }
+
+  append_console(console_text, "\n")
+  invisible(TRUE)
+}
+
 sync_form_from_yaml <- function(text_widget) {
   yaml_object <- parse_yaml_from_widget(text_widget)
 
@@ -484,6 +548,10 @@ run_step <- function(console_text, plot_label, yaml_text, step_id) {
   append_console(console_text, sprintf("%s\n", step_info$description))
   append_console(console_text, sprintf("%s\n", step_info$estimate))
   append_console(console_text, sprintf("Config file: %s\n\n", runtime_yaml_path))
+
+  if (identical(step_id, "step0")) {
+    report_step0_preflight(console_text, runtime_yaml_path)
+  }
 
   missing_packages <- required_packages[!vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)]
   if (length(missing_packages) > 0) {
