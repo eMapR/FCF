@@ -8,6 +8,16 @@ The application is designed to be run through a graphical user interface (GUI). 
 
 The primary intended users are land managers, analysts, and researchers who need spatially explicit carbon estimates with associated uncertainty, but who do not want to modify or write R code.
 
+## Quick Start
+
+1. Install R and the required packages: `yaml`, `terra`, `geoR`, `spBayes`.
+2. Launch the GUI from the repository root with `Rscript src/gui.R`.
+3. Load `src/config.yaml` or `src/config_example.yaml`.
+4. Set `site`, `data_dir`, and `output_dir`.
+5. Run Step 0, then Step 1, then Step 2, then Step 3.
+
+For most users, the GUI is the only interface that needs to be used.
+
 ------
 
 ## What the Application Does
@@ -60,6 +70,12 @@ tcltk, yaml, terra, geoR, spBayes
 ```
 
 `tcltk` usually ships with R; the others typically need installation.
+
+Install all non-base packages with:
+
+```
+Rscript -e "install.packages(c('yaml','terra','geoR','spBayes'), repos='https://cloud.r-project.org')"
+```
 
 #### Recommended Method (User Library, No sudo Required)
 
@@ -116,7 +132,7 @@ Rscript src/gui.R
 #### Alternative: System-Wide Installation (Requires sudo)
 
 ```
-sudo Rscript -e "install.packages('yaml', repos='https://cloud.r-project.org')"
+sudo Rscript -e "install.packages(c('yaml','terra','geoR','spBayes'), repos='https://cloud.r-project.org')"
 ```
 
 ------
@@ -155,6 +171,12 @@ Launch the GUI from the repository root:
 Rscript src/gui.R
 ```
 
+On Windows, you can also start the GUI from an R console with:
+
+```r
+source("src/gui.R")
+```
+
 ------
 
 ## Internal Workflow (High-Level)
@@ -165,7 +187,7 @@ The modeling workflow consists of four sequential steps.
 
 - Validates input files and directory structure
 - Verifies that the boundary, plots, and raster share the same CRS
-- Verifies that the raster fully covers the boundary extent
+- Verifies that the raster covers the boundary extent, with optional tolerance-based warning behavior
 - Loads spatial data (boundary, plots, raster)
 - Extracts raster values at plot locations
 
@@ -235,8 +257,15 @@ then the program will look for:
 Requirements:
 
 - All spatial data must use a common coordinate reference system (CRS).
-- The raster must fully cover the boundary polygon.
-- The GUI checks both of these conditions during Step 0 and stops early with a readable error if they fail.
+- The raster should cover the boundary polygon.
+- By default, Step 0 can be configured either to stop on raster coverage mismatch or to log a warning and continue when the mismatch is small and expected.
+- The GUI checks both CRS consistency and raster coverage during Step 0 and reports readable messages if they fail.
+
+Practical notes:
+
+- The plots shapefile must contain a field named `Total.Carb`.
+- The raster is expected to be single-band.
+- Small extent mismatches can occur because of pixel alignment or rounding; these can be handled with `raster.coverage.tolerance`.
 
 ------
 
@@ -249,6 +278,7 @@ The GUI includes:
 - A YAML editor
 - Quick fields for `site`, `data_dir`, and `output_dir`
 - `Load Template`, `Save`, and `Save As` actions
+- Step buttons that run the workflow in order and stream log output into the GUI
 
 For most first runs, only these values usually need to change:
 
@@ -257,6 +287,29 @@ For most first runs, only these values usually need to change:
 - `output_dir`
 - `n.samples`
 - `n.threads`
+
+Recommended first-pass workflow:
+
+1. Start with `src/config_example.yaml` if you want a portable template, or `src/config.yaml` if you want to edit the default runtime config.
+2. Change `site`, `data_dir`, and `output_dir`.
+3. Run Step 0 to validate paths and spatial inputs.
+4. Run Step 1 to inspect the semivariogram and logged nugget/sill values.
+5. Adjust advanced Step 2 settings only if needed.
+6. Run Step 2 and then Step 3.
+
+Raster coverage behavior can also be controlled from YAML:
+
+- `strict.raster.coverage` - when `true`, Step 0 stops if the raster extent does not cover the boundary extent
+- `raster.coverage.tolerance` - non-negative tolerance in the raster CRS units that allows small edge mismatches
+
+Example:
+
+```yaml
+strict.raster.coverage: false
+raster.coverage.tolerance: 10
+```
+
+This setting is useful when the raster and boundary differ by only a few map units because of extent alignment or rounding, but you still want the workflow to continue.
 
 The variogram-related variance settings are more advanced. A common workflow is:
 
@@ -271,6 +324,7 @@ The configuration file specifies:
 - Paths to input data and output directories
 - MCMC settings (number of samples, thinning)
 - Prior bounds and tuning parameters for the spatial model
+- Raster coverage validation behavior for Step 0
 
 The GUI allows users to load, edit, and save the configuration file.
 
@@ -282,12 +336,15 @@ Model outputs are written to a site-specific directory under the configured outp
 
 Typical outputs include:
 
-- Raster of predicted carbon values
-- Raster representing predictive uncertainty
-- Diagnostic plots from variogram and MCMC fitting steps
-- Serialized R objects containing fitted models and predictions
+- `semivariogram.png` from Step 1
+- `chainImg.png` from Step 2
+- `m.1.RData`, the fitted spatial model from Step 2
+- `pred.tif`, the per-pixel prediction output from Step 3
+- `m.1.pred.RData`, serialized per-pixel predictive samples
+- `pred-joint.tif`, the joint prediction output from Step 3
+- `m.1.pred.joint.RData`, serialized joint predictive samples
 
-These outputs are intended for mapping, analysis, and reporting.
+`pred.tif` is intended for mapping and per-pixel summaries. `pred-joint.tif` is intended for aggregation workflows where uncertainty over areas, polygons, or totals matters.
 
 ------
 
@@ -298,11 +355,13 @@ The application produces two types of predictions:
 **Non-joint predictions**
 
 - Suitable for per-pixel mapping and visualization
+- Easier to use for standard raster display workflows
 
 **Joint predictions**
 
 - Preserve spatial covariance
-- Required for computing uncertainty on area-based summaries (means or totals over polygons)
+- Better suited for uncertainty-aware aggregation
+- Required when computing uncertainty for area-based summaries such as polygon means or totals
 
 Joint predictions should be used when reporting uncertainty for aggregated quantities.
 

@@ -4,8 +4,8 @@ output_dir: /vol/v1/FCF/bayesUpdate/results
 n.samples: 5000
 n.threads: 30
 max.dist: 5
-strict.raster.coverage: true
-raster.coverage.tolerance: 0
+strict.raster.coverage: false
+raster.coverage.tolerance: 10
 max.effective.range: 100
 min.effective.range: 0.001
 spatial.variance.scale: 669.1625
