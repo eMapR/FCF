@@ -192,6 +192,10 @@ append_path_check <- function(console_text, label, path, exists) {
   )
 }
 
+escape_cmd_string <- function(value) {
+  gsub('"', '""', value, fixed = TRUE)
+}
+
 report_step0_preflight <- function(console_text, runtime_yaml_path) {
   yaml_object <- tryCatch(
     yaml::read_yaml(runtime_yaml_path),
@@ -229,6 +233,33 @@ report_step0_preflight <- function(console_text, runtime_yaml_path) {
 
   append_console(console_text, "\n")
   invisible(TRUE)
+}
+
+launch_step_process <- function(rscript_path, step_path, output_file, runtime_yaml_path) {
+  normalized_step <- normalizePath(step_path, winslash = "/", mustWork = TRUE)
+  normalized_yaml <- normalizePath(runtime_yaml_path, winslash = "/", mustWork = FALSE)
+  normalized_log <- normalizePath(output_file, winslash = "/", mustWork = FALSE)
+
+  if (.Platform$OS.type == "windows") {
+    cmd_line <- sprintf(
+      'set "FCF_CONFIG_PATH=%s" && "%s" "%s" > "%s" 2>&1',
+      escape_cmd_string(normalized_yaml),
+      escape_cmd_string(rscript_path),
+      escape_cmd_string(normalized_step),
+      escape_cmd_string(normalized_log)
+    )
+
+    return(system2("cmd.exe", args = c("/c", cmd_line), wait = FALSE))
+  }
+
+  system2(
+    command = rscript_path,
+    args = normalized_step,
+    stdout = normalized_log,
+    stderr = normalized_log,
+    wait = FALSE,
+    env = sprintf("FCF_CONFIG_PATH=%s", normalized_yaml)
+  )
 }
 
 sync_form_from_yaml <- function(text_widget) {
@@ -597,17 +628,7 @@ run_step <- function(console_text, plot_label, yaml_text, step_id) {
   setwd(script_dir)
 
   tryCatch({
-    system2(
-      command = rscript_path,
-      args = normalizePath(step_path, winslash = "/", mustWork = TRUE),
-      stdout = output_file,
-      stderr = output_file,
-      wait = FALSE,
-      env = sprintf(
-        "FCF_CONFIG_PATH=%s",
-        normalizePath(runtime_yaml_path, winslash = "/", mustWork = FALSE)
-      )
-    )
+    launch_step_process(rscript_path, step_path, output_file, runtime_yaml_path)
   }, error = function(e) {
     app_state$running_step <- NULL
     mark_step_status(step_id, "failed")
