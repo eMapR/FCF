@@ -29,6 +29,13 @@ n.threads: 50
 # Variogram diagnostic setting for Step 1
 max.dist: 5
 
+# Step 0 raster coverage guard.
+# Leave strict.raster.coverage as true to stop when the raster does not fully cover
+# the boundary extent. Set it to false to log a warning and continue.
+# raster.coverage.tolerance is in the raster CRS units and allows small edge mismatches.
+strict.raster.coverage: true
+raster.coverage.tolerance: 0
+
 # Advanced spatial prior settings
 max.effective.range: 100
 min.effective.range: 0.001

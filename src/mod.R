@@ -47,6 +47,10 @@ validate_config <- function(cfg) {
     discard_offset = "numeric",
     chain_sample = "numeric"
   )
+  optional_fields <- list(
+    strict.raster.coverage = "logical",
+    raster.coverage.tolerance = "numeric"
+  )
   
   issues <- character(0)
 
@@ -70,6 +74,22 @@ validate_config <- function(cfg) {
       issues <- c(issues, sprintf("Field '%s' should be character but is %s", key, class(actual_value)))
     }
   }
+
+  for (key in names(optional_fields)) {
+    if (!key %in% names(cfg) || is.null(cfg[[key]])) {
+      next
+    }
+
+    expected_type <- optional_fields[[key]]
+    actual_value <- cfg[[key]]
+
+    if (expected_type == "numeric" && !is.numeric(actual_value)) {
+      issues <- c(issues, sprintf("Field '%s' should be numeric but is %s", key, class(actual_value)))
+    }
+    if (expected_type == "logical" && !is.logical(actual_value)) {
+      issues <- c(issues, sprintf("Field '%s' should be logical but is %s", key, class(actual_value)))
+    }
+  }
   
   if (!is.null(cfg$discard_offset) &&
       !is.null(cfg$n.samples) &&
@@ -77,6 +97,12 @@ validate_config <- function(cfg) {
       is.numeric(cfg$n.samples) &&
       cfg$discard_offset >= cfg$n.samples) {
     issues <- c(issues, "'discard_offset' must be less than 'n.samples'")
+  }
+
+  if (!is.null(cfg$raster.coverage.tolerance) &&
+      is.numeric(cfg$raster.coverage.tolerance) &&
+      cfg$raster.coverage.tolerance < 0) {
+    issues <- c(issues, "'raster.coverage.tolerance' must be non-negative")
   }
 
   if (length(issues) > 0) {
@@ -193,36 +219,43 @@ check_crs_match <- function(bnd_path, dat_path, raster_path) {
   emit_status("All spatial inputs use the same CRS.")
 }
 
-check_raster_covers_boundary <- function(bnd_path, raster_path) {
+check_raster_covers_boundary <- function(bnd_path, raster_path, tolerance = 0, strict = TRUE) {
   bnd <- vect(bnd_path)
   ras <- rast(raster_path)
 
   bnd_ext <- ext(bnd)
   ras_ext <- ext(ras)
 
-  covers <- xmin(bnd_ext) >= xmin(ras_ext) &&
-    xmax(bnd_ext) <= xmax(ras_ext) &&
-    ymin(bnd_ext) >= ymin(ras_ext) &&
-    ymax(bnd_ext) <= ymax(ras_ext)
+  covers <- xmin(bnd_ext) >= (xmin(ras_ext) - tolerance) &&
+    xmax(bnd_ext) <= (xmax(ras_ext) + tolerance) &&
+    ymin(bnd_ext) >= (ymin(ras_ext) - tolerance) &&
+    ymax(bnd_ext) <= (ymax(ras_ext) + tolerance)
 
   if (!covers) {
-    stop(
-      paste(
-        "Raster extent does not fully cover the boundary polygon extent.",
-        sprintf(
-          "Boundary extent: xmin=%s xmax=%s ymin=%s ymax=%s",
-          xmin(bnd_ext), xmax(bnd_ext), ymin(bnd_ext), ymax(bnd_ext)
-        ),
-        sprintf(
-          "Raster extent: xmin=%s xmax=%s ymin=%s ymax=%s",
-          xmin(ras_ext), xmax(ras_ext), ymin(ras_ext), ymax(ras_ext)
-        ),
-        sep = "\n"
-      )
+    message_text <- paste(
+      "Raster extent does not fully cover the boundary polygon extent.",
+      sprintf("Coverage tolerance: %s", tolerance),
+      sprintf(
+        "Boundary extent: xmin=%s xmax=%s ymin=%s ymax=%s",
+        xmin(bnd_ext), xmax(bnd_ext), ymin(bnd_ext), ymax(bnd_ext)
+      ),
+      sprintf(
+        "Raster extent: xmin=%s xmax=%s ymin=%s ymax=%s",
+        xmin(ras_ext), xmax(ras_ext), ymin(ras_ext), ymax(ras_ext)
+      ),
+      sep = "\n"
     )
+
+    if (isTRUE(strict)) {
+      stop(message_text)
+    }
+
+    emit_status(paste(message_text, "Continuing because 'strict.raster.coverage' is FALSE.", sep = "\n"))
+    return(invisible(FALSE))
   }
 
   emit_status("Raster extent fully covers the boundary polygon extent.")
+  invisible(TRUE)
 }
 
 
@@ -263,7 +296,9 @@ make_params <- function(config_path = NULL) {
     spatial.variance.tuning = 0.06,
     nugget.variance.tuning = 0.06,
     discard_offset=5001,
-    chain_sample=8
+    chain_sample=8,
+    strict.raster.coverage = TRUE,
+    raster.coverage.tolerance = 0
   )
 
   config_values <- yaml::read_yaml(config_path)

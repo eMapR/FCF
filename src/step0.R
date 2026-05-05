@@ -64,7 +64,22 @@ check_raster_for_band(carbon_map_path)
 check_crs_match(bnd_path, dat_path, carbon_map_path)
 
 # Check raster coverage over boundary
-check_raster_covers_boundary(bnd_path, carbon_map_path)
+raster_coverage_tolerance <- params$raster.coverage.tolerance
+if (is.null(raster_coverage_tolerance)) {
+  raster_coverage_tolerance <- 0
+}
+
+strict_raster_coverage <- params$strict.raster.coverage
+if (is.null(strict_raster_coverage)) {
+  strict_raster_coverage <- TRUE
+}
+
+check_raster_covers_boundary(
+  bnd_path,
+  carbon_map_path,
+  tolerance = raster_coverage_tolerance,
+  strict = strict_raster_coverage
+)
 
 
 
