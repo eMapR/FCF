@@ -545,6 +545,50 @@ build_help_text <- function() {
   )
 }
 
+create_collapsible_panel <- function(parent, title, default_open = TRUE) {
+  panel_frame <- tkframe(parent, relief = "groove", borderwidth = 1)
+  tkgrid.columnconfigure(panel_frame, 0, weight = 1)
+  tkgrid.rowconfigure(panel_frame, 1, weight = 1)
+
+  title_var <- tclVar("")
+  body_frame <- tkframe(panel_frame)
+  is_open <- isTRUE(default_open)
+
+  update_title <- function() {
+    prefix <- if (is_open) "[-]" else "[+]"
+    tclvalue(title_var) <- sprintf("%s %s", prefix, title)
+  }
+
+  toggle_panel <- function() {
+    if (is_open) {
+      tkgrid.remove(body_frame)
+      is_open <<- FALSE
+    } else {
+      tkgrid(body_frame, row = 1, column = 0, sticky = "nsew", padx = 6, pady = c(0, 6))
+      is_open <<- TRUE
+    }
+    update_title()
+  }
+
+  header_button <- tkbutton(
+    panel_frame,
+    textvariable = title_var,
+    anchor = "w",
+    justify = "left",
+    relief = "flat",
+    command = toggle_panel
+  )
+  tkgrid(header_button, row = 0, column = 0, sticky = "ew", padx = 6, pady = c(6, 4))
+
+  if (is_open) {
+    tkgrid(body_frame, row = 1, column = 0, sticky = "nsew", padx = 6, pady = c(0, 6))
+  }
+
+  update_title()
+
+  list(panel = panel_frame, body = body_frame)
+}
+
 tt <- tktoplevel()
 tkwm.title(tt, "Bayesian Spatial Carbon Modeling")
 tkwm.minsize(tt, 1200, 760)
@@ -564,17 +608,15 @@ right_frame <- tkframe(main_frame)
 tkgrid(left_frame, row = 0, column = 0, sticky = "nsew", padx = c(0, 10))
 tkgrid(right_frame, row = 0, column = 1, sticky = "nsew")
 
+tkgrid.rowconfigure(left_frame, 0, weight = 2)
 tkgrid.rowconfigure(left_frame, 1, weight = 1)
-tkgrid.rowconfigure(left_frame, 3, weight = 1)
 tkgrid.columnconfigure(left_frame, 0, weight = 1)
 tkgrid.rowconfigure(right_frame, 1, weight = 1)
-tkgrid.rowconfigure(right_frame, 2, weight = 1)
 tkgrid.columnconfigure(right_frame, 0, weight = 1)
 
-tkgrid(tklabel(left_frame, text = "Console Output"), row = 0, column = 0, sticky = "w")
-
-console_frame <- tkframe(left_frame)
-tkgrid(console_frame, row = 1, column = 0, sticky = "nsew")
+console_panel <- create_collapsible_panel(left_frame, "Console Output", default_open = TRUE)
+tkgrid(console_panel$panel, row = 0, column = 0, sticky = "nsew")
+console_frame <- console_panel$body
 tkgrid.rowconfigure(console_frame, 0, weight = 1)
 tkgrid.columnconfigure(console_frame, 0, weight = 1)
 
@@ -588,47 +630,47 @@ tkconfigure(console_text, yscrollcommand = function(...) tkset(console_scroll, .
 tkgrid(console_text, row = 0, column = 0, sticky = "nsew")
 tkgrid(console_scroll, row = 0, column = 1, sticky = "ns")
 
-tkgrid(tklabel(left_frame, text = "Plot Preview"), row = 2, column = 0, sticky = "w", pady = c(10, 0))
-
-plot_frame <- tkframe(left_frame, relief = "sunken", borderwidth = 1)
-tkgrid(plot_frame, row = 3, column = 0, sticky = "nsew")
+plot_panel <- create_collapsible_panel(left_frame, "Plot Preview", default_open = TRUE)
+tkgrid(plot_panel$panel, row = 1, column = 0, sticky = "nsew", pady = c(10, 0))
+plot_frame <- tkframe(plot_panel$body, relief = "sunken", borderwidth = 1)
+tkgrid(plot_frame, row = 0, column = 0, sticky = "nsew")
+tkgrid.rowconfigure(plot_panel$body, 0, weight = 1)
+tkgrid.columnconfigure(plot_panel$body, 0, weight = 1)
 tkgrid.rowconfigure(plot_frame, 0, weight = 1)
 tkgrid.columnconfigure(plot_frame, 0, weight = 1)
 plot_label <- tklabel(plot_frame)
 tkgrid(plot_label, row = 0, column = 0, sticky = "nsew", padx = 5, pady = 5)
 
-shortcut_frame <- tkframe(right_frame, relief = "groove", borderwidth = 1)
-tkgrid(shortcut_frame, row = 0, column = 0, sticky = "ew", pady = c(0, 10))
+shortcut_panel <- create_collapsible_panel(right_frame, "Quick Config Shortcuts", default_open = TRUE)
+tkgrid(shortcut_panel$panel, row = 0, column = 0, sticky = "ew", pady = c(0, 10))
+shortcut_frame <- shortcut_panel$body
 tkgrid.columnconfigure(shortcut_frame, 1, weight = 1)
 
-tkgrid(tklabel(shortcut_frame, text = "Quick Config Shortcuts"), row = 0, column = 0, columnspan = 3, sticky = "w", padx = 6, pady = c(6, 4))
-
-tkgrid(tklabel(shortcut_frame, text = "Site"), row = 1, column = 0, sticky = "w", padx = 6, pady = 2)
+tkgrid(tklabel(shortcut_frame, text = "Site"), row = 0, column = 0, sticky = "w", pady = 2)
 site_entry <- tkentry(shortcut_frame, textvariable = app_state$form_vars$site)
-tkgrid(site_entry, row = 1, column = 1, sticky = "ew", padx = 6, pady = 2)
+tkgrid(site_entry, row = 0, column = 1, sticky = "ew", padx = 6, pady = 2)
 
-tkgrid(tklabel(shortcut_frame, text = "Data Dir"), row = 2, column = 0, sticky = "w", padx = 6, pady = 2)
+tkgrid(tklabel(shortcut_frame, text = "Data Dir"), row = 1, column = 0, sticky = "w", pady = 2)
 data_dir_entry <- tkentry(shortcut_frame, textvariable = app_state$form_vars$data_dir)
-tkgrid(data_dir_entry, row = 2, column = 1, sticky = "ew", padx = 6, pady = 2)
+tkgrid(data_dir_entry, row = 1, column = 1, sticky = "ew", padx = 6, pady = 2)
 data_dir_button <- tkbutton(shortcut_frame, text = "Browse", command = function() browse_directory_into_field("data_dir", yaml_text))
 
-tkgrid(tklabel(shortcut_frame, text = "Output Dir"), row = 3, column = 0, sticky = "w", padx = 6, pady = 2)
+tkgrid(tklabel(shortcut_frame, text = "Output Dir"), row = 2, column = 0, sticky = "w", pady = 2)
 output_dir_entry <- tkentry(shortcut_frame, textvariable = app_state$form_vars$output_dir)
-tkgrid(output_dir_entry, row = 3, column = 1, sticky = "ew", padx = 6, pady = 2)
+tkgrid(output_dir_entry, row = 2, column = 1, sticky = "ew", padx = 6, pady = 2)
 output_dir_button <- tkbutton(shortcut_frame, text = "Browse", command = function() browse_directory_into_field("output_dir", yaml_text))
 
 apply_shortcuts_button <- tkbutton(shortcut_frame, text = "Apply To YAML", command = function() apply_form_to_yaml(yaml_text))
 sync_shortcuts_button <- tkbutton(shortcut_frame, text = "Pull From YAML", command = function() sync_form_from_yaml(yaml_text))
 
-yaml_frame <- tkframe(right_frame)
-tkgrid(yaml_frame, row = 1, column = 0, sticky = "nsew", pady = c(0, 10))
-tkgrid.rowconfigure(yaml_frame, 1, weight = 1)
+yaml_panel <- create_collapsible_panel(right_frame, "YAML Editor", default_open = TRUE)
+tkgrid(yaml_panel$panel, row = 1, column = 0, sticky = "nsew", pady = c(0, 10))
+yaml_frame <- yaml_panel$body
+tkgrid.rowconfigure(yaml_frame, 0, weight = 1)
 tkgrid.columnconfigure(yaml_frame, 0, weight = 1)
 
-tkgrid(tklabel(yaml_frame, text = "YAML Editor"), row = 0, column = 0, sticky = "w")
-
 yaml_editor_frame <- tkframe(yaml_frame)
-tkgrid(yaml_editor_frame, row = 1, column = 0, sticky = "nsew")
+tkgrid(yaml_editor_frame, row = 0, column = 0, sticky = "nsew")
 tkgrid.rowconfigure(yaml_editor_frame, 0, weight = 1)
 tkgrid.columnconfigure(yaml_editor_frame, 0, weight = 1)
 
@@ -639,21 +681,20 @@ tkgrid(yaml_text, row = 0, column = 0, sticky = "nsew")
 tkgrid(yaml_scroll_y, row = 0, column = 1, sticky = "ns")
 
 yaml_button_frame <- tkframe(yaml_frame)
-tkgrid(yaml_button_frame, row = 2, column = 0, sticky = "ew", pady = c(6, 0))
+tkgrid(yaml_button_frame, row = 1, column = 0, sticky = "ew", pady = c(6, 0))
 
 load_button <- tkbutton(yaml_button_frame, text = "Load YAML", command = function() load_yaml_file(yaml_text))
 template_button <- tkbutton(yaml_button_frame, text = "Load Template", command = function() load_template_yaml(yaml_text))
 save_button <- tkbutton(yaml_button_frame, text = "Save", command = function() save_yaml_file(yaml_text))
 save_as_button <- tkbutton(yaml_button_frame, text = "Save As", command = function() save_yaml_as_file(yaml_text))
 
-controls_frame <- tkframe(right_frame, relief = "groove", borderwidth = 1)
-tkgrid(controls_frame, row = 2, column = 0, sticky = "nsew")
+controls_panel <- create_collapsible_panel(right_frame, "Run Workflow", default_open = TRUE)
+tkgrid(controls_panel$panel, row = 2, column = 0, sticky = "ew")
+controls_frame <- controls_panel$body
 tkgrid.columnconfigure(controls_frame, 0, weight = 1)
 tkgrid.columnconfigure(controls_frame, 1, weight = 1)
 
-tkgrid(tklabel(controls_frame, text = "Run Workflow"), row = 0, column = 0, columnspan = 2, sticky = "w", padx = 6, pady = c(6, 4))
-
-row_index <- 1
+row_index <- 0
 for (step_id in names(step_definitions)) {
   app_state$step_status_vars[[step_id]] <- tclVar(step_definitions[[step_id]]$label)
   status_label <- tklabel(controls_frame, textvariable = app_state$step_status_vars[[step_id]], anchor = "w", justify = "left")
@@ -666,7 +707,7 @@ for (step_id in names(step_definitions)) {
     })
   )
   app_state$step_buttons[[step_id]] <- button
-  tkgrid(status_label, row = row_index, column = 0, sticky = "w", padx = 6, pady = 2)
+  tkgrid(status_label, row = row_index, column = 0, sticky = "w", pady = 2)
   tkgrid(button, row = row_index, column = 1, sticky = "ew", padx = 6, pady = 2)
   row_index <- row_index + 1
 }
@@ -689,8 +730,9 @@ status_label <- tklabel(
 )
 tkgrid(status_label, row = row_index, column = 0, columnspan = 2, sticky = "ew", padx = 6, pady = c(4, 8))
 
-help_frame <- tkframe(right_frame, relief = "groove", borderwidth = 1)
-tkgrid(help_frame, row = 3, column = 0, sticky = "ew", pady = c(10, 0))
+help_panel <- create_collapsible_panel(right_frame, "Help", default_open = FALSE)
+tkgrid(help_panel$panel, row = 3, column = 0, sticky = "ew", pady = c(10, 0))
+help_frame <- help_panel$body
 tkgrid.columnconfigure(help_frame, 0, weight = 1)
 help_label <- tklabel(
   help_frame,
@@ -701,10 +743,10 @@ help_label <- tklabel(
 )
 tkgrid(help_label, row = 0, column = 0, sticky = "ew", padx = 6, pady = 6)
 
-tkgrid(data_dir_button, row = 2, column = 2, sticky = "ew", padx = c(0, 6), pady = 2)
-tkgrid(output_dir_button, row = 3, column = 2, sticky = "ew", padx = c(0, 6), pady = 2)
-tkgrid(apply_shortcuts_button, row = 4, column = 1, sticky = "ew", padx = 6, pady = c(4, 6))
-tkgrid(sync_shortcuts_button, row = 4, column = 2, sticky = "ew", padx = c(0, 6), pady = c(4, 6))
+tkgrid(data_dir_button, row = 1, column = 2, sticky = "ew", pady = 2)
+tkgrid(output_dir_button, row = 2, column = 2, sticky = "ew", pady = 2)
+tkgrid(apply_shortcuts_button, row = 3, column = 1, sticky = "ew", padx = 6, pady = c(4, 0))
+tkgrid(sync_shortcuts_button, row = 3, column = 2, sticky = "ew", pady = c(4, 0))
 
 tkgrid(load_button, row = 0, column = 0, padx = c(0, 6))
 tkgrid(template_button, row = 0, column = 1, padx = c(0, 6))
