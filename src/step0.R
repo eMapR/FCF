@@ -63,28 +63,17 @@ check_raster_for_band(carbon_map_path)
 # Check CRS consistency across inputs
 check_crs_match(bnd_path, dat_path, carbon_map_path)
 
-# Check raster coverage over boundary
-raster_coverage_tolerance <- params$raster.coverage.tolerance
-if (is.null(raster_coverage_tolerance)) {
-  raster_coverage_tolerance <- 0
-}
-
-strict_raster_coverage <- params$strict.raster.coverage
-if (is.null(strict_raster_coverage)) {
-  strict_raster_coverage <- TRUE
-}
-
-check_raster_covers_boundary(
-  bnd_path,
-  carbon_map_path,
-  tolerance = raster_coverage_tolerance,
-  strict = strict_raster_coverage
-)
-
-
+# Raster coverage over the boundary is checked in load_assets() below (and again
+# by every other step), since strict.raster.coverage may be FALSE.
+raster_coverage <- resolve_raster_coverage_settings(params)
 
 # 1. Load and prepare data assets
-asset_list <- load_assets(site, base_path = params$data_dir)
+asset_list <- load_assets(
+  site,
+  base_path = params$data_dir,
+  raster_coverage_tolerance = raster_coverage$tolerance,
+  strict_raster_coverage = raster_coverage$strict
+)
 pts <- asset_list$pts
 carbon.map <- asset_list$carbon.map
 

@@ -259,10 +259,30 @@ check_raster_covers_boundary <- function(bnd_path, raster_path, tolerance = 0, s
 }
 
 
-load_assets <- function(site, base_path = "/vol/v1/FCF/spatial-model-walkthrough/assets/test-bed-models/data/") {
+resolve_raster_coverage_settings <- function(params) {
+  tolerance <- params$raster.coverage.tolerance
+  if (is.null(tolerance)) tolerance <- 0
+
+  strict <- params$strict.raster.coverage
+  if (is.null(strict)) strict <- TRUE
+
+  list(tolerance = tolerance, strict = strict)
+}
+
+load_assets <- function(site, base_path = "/vol/v1/FCF/spatial-model-walkthrough/assets/test-bed-models/data/",
+                         raster_coverage_tolerance = 0, strict_raster_coverage = TRUE) {
   bnd_path <- normalizePath(file.path(base_path, site, "bnd", "bnd.shp"), mustWork = FALSE)
   dat_path <- normalizePath(file.path(base_path, site, "plots", "plots.shp"), mustWork = FALSE)
   carbon_map_path <- normalizePath(file.path(base_path, site, "carbon-map.tif"), mustWork = FALSE)
+
+  # Re-checked on every load (not just Step 0) because predict_spatial/predict_joint
+  # silently drop any boundary area the raster doesn't cover (as.data.frame() omits NA
+  # rows), and this function is called independently by every step.
+  check_raster_covers_boundary(
+    bnd_path, carbon_map_path,
+    tolerance = raster_coverage_tolerance,
+    strict = strict_raster_coverage
+  )
 
   bnd <- vect(bnd_path)
   dat <- vect(dat_path)

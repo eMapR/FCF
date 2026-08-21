@@ -35,7 +35,13 @@ results_dir <- file.path(params$output_dir, site)
 if (!dir.exists(results_dir)) dir.create(results_dir, recursive = TRUE)
 
 # 1. Load and prepare data assets
-asset_list <- load_assets(site, base_path = params$data_dir)
+raster_coverage <- resolve_raster_coverage_settings(params)
+asset_list <- load_assets(
+  site,
+  base_path = params$data_dir,
+  raster_coverage_tolerance = raster_coverage$tolerance,
+  strict_raster_coverage = raster_coverage$strict
+)
 pts <- asset_list$pts
 carbon.map <- asset_list$carbon.map
 
