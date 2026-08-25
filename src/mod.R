@@ -461,9 +461,10 @@ plot_predictions <- function(pred.rast, carbon.map) {
 
   par(mfrow = c(1, 2))
   for(i in 1:nlyr(pred.rast)){
+    layer.range <- range(values(pred.rast[[i]]), na.rm = TRUE)
     plot(pred.mn, col = map.pal("grass", 50), type = "cont")
     plot(pred.rast, i, col = map.pal("grass", 50),
-         breaks = seq(-140, 300, length.out = 51), type = "cont")
+         breaks = seq(layer.range[1], layer.range[2], length.out = 51), type = "cont")
   }
   par(mfrow = c(1, 1))
 }
