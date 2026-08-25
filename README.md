@@ -45,9 +45,15 @@ The panel updates automatically as steps finish.
 
 **After Step 1 — Variogram**
 
-The preview displays the empirical semivariogram generated from the residuals of the initial regression model.
+The preview displays the empirical semivariogram generated from the residuals of the initial regression model. It answers a simple question: after accounting for the raster predictor, is there still a geographic pattern in what's left over?
 
-This plot helps show whether spatial structure remains in the data and how that spatial relationship changes with distance.
+The plot shows three characteristic features:
+
+- **Nugget** — variation at very short distances, including measurement error and fine-scale variability not explained by location.
+- **Sill** — the approximate overall residual variance represented by the variogram, roughly where the curve levels off.
+- **Range** — the approximate distance beyond which observations are no longer meaningfully spatially related.
+
+See [Understanding the Modeling Process](#understanding-the-modeling-process) for why this matters.
 
 **After Step 2 — Model Diagnostics**
 
@@ -55,13 +61,13 @@ The preview displays diagnostic plots from the Bayesian model.
 
 The figure contains trace and density plots for three model parameters:
 
-- `phi` — spatial decay
-- `sigma.sq` — spatial variance
-- `tau.sq` — nugget or error variance
+- `phi` — spatial decay; how quickly spatial correlation decreases with distance
+- `sigma.sq` — spatial variance; variation associated with the spatial process
+- `tau.sq` — nugget/error variance; variation not represented by the spatial process
 
-The trace plots help determine whether the model is sampling consistently rather than drifting or becoming stuck.
+The trace plots help determine whether the model is sampling consistently: a healthy trace generally fluctuates around a stable region without persistent upward or downward drift, and without getting stuck.
 
-The density plots show the estimated posterior distribution of each parameter.
+The density plots are summaries of the posterior distributions — not a single parameter estimate, but the full range of plausible values.
 
 **After Step 3 — Predictions**
 
@@ -72,7 +78,7 @@ The final display contains:
 - **Mean prediction map** — the estimated carbon value across the landscape.
 - **Uncertainty map** — the standard deviation associated with those predictions.
 
-The full prediction rasters are also saved to the configured output directory.
+The full prediction rasters are also saved to the configured output directory. See [Understanding the Modeling Process](#understanding-the-modeling-process) for what these predictions actually represent.
 
 ### Quick Config Shortcuts Panel
 
@@ -212,50 +218,6 @@ Use this panel when you need a reminder about what a particular part of the inte
 
 ------
 
-## Running an Analysis
-
-For a typical analysis, use the following workflow.
-
-### 1. Select your data
-
-Open Quick Config Shortcuts and set:
-
-- Site
-- Data Dir
-- Output Dir
-
-Click Apply To YAML.
-
-### 2. Check your inputs
-
-Run Step 0: Check Inputs.
-
-Watch the Console Output panel.
-
-Do not continue until the required files are found and the spatial-data checks complete successfully.
-
-### 3. Examine spatial structure
-
-Run Step 1: Fit Variogram.
-
-When it finishes, examine the semivariogram in the Plot Preview panel.
-
-### 4. Fit the spatial model
-
-Run Step 2: Fit Spatial Model.
-
-This may take considerably longer than the previous steps.
-
-When it finishes, examine the trace and density plots in Plot Preview.
-
-### 5. Generate predictions
-
-Run Step 3: Predict Outputs.
-
-When the process finishes, examine the prediction and uncertainty maps and locate the complete output files in your Output Dir.
-
-------
-
 ## Input Data
 
 Each analysis site requires three primary spatial inputs.
@@ -302,6 +264,110 @@ Step 0 checks these requirements before the modeling workflow begins.
 
 ------
 
+## Running an Analysis
+
+For a typical analysis, use the following workflow.
+
+### 1. Select your data
+
+Open Quick Config Shortcuts and set:
+
+- Site
+- Data Dir
+- Output Dir
+
+Click Apply To YAML.
+
+### 2. Check your inputs
+
+Run Step 0: Check Inputs.
+
+Watch the Console Output panel.
+
+Do not continue until the required files are found and the spatial-data checks complete successfully.
+
+### 3. Examine spatial structure
+
+Run Step 1: Fit Variogram.
+
+When it finishes, examine the semivariogram in the Plot Preview panel.
+
+### 4. Fit the spatial model
+
+Run Step 2: Fit Spatial Model.
+
+This may take considerably longer than the previous steps.
+
+When it finishes, examine the trace and density plots in Plot Preview.
+
+### 5. Generate predictions
+
+Run Step 3: Predict Outputs.
+
+When the process finishes, examine the prediction and uncertainty maps and locate the complete output files in your Output Dir.
+
+------
+
+## Understanding the Modeling Process
+
+FCF's approach is closely related to the Bayesian spatial modeling framework described in Babcock et al. (2015), extended for prediction and aggregation uncertainty in Babcock et al. (2018) — full citations are in [Scientific Background](#scientific-background). FCF is an application-specific implementation related to this framework, not a reproduction of every model or analysis in those papers.
+
+### Why Use a Spatial Model?
+
+A conventional regression assumes that, once you've accounted for your predictor variables, whatever's left over (the residuals) is essentially random noise, unrelated from one observation to the next. Forest data often doesn't behave this way: two plots located close together tend to have similar carbon values even after accounting for the raster predictor, because they likely share things the raster doesn't fully capture — environmental conditions, disturbance history, forest composition, soils, climate, and so on.
+
+If that leftover spatial similarity is ignored, the resulting estimates of precision and uncertainty can be misleading, typically overconfident. FCF adds a spatial component so geographic relationships among observations can contribute information to both the predictions and their uncertainty.
+
+### Step 1: Regression and Residuals
+
+Step 1 fits a conventional (non-spatial) regression between measured plot carbon and the raster predictor, then calculates the residuals — the difference between what was measured and what the regression predicted:
+
+```
+Residual = observed carbon − carbon predicted by the regression
+```
+
+It then checks whether nearby plots tend to have similar residuals. If they do, that's evidence of residual spatial dependence — geographic location contains information the raster predictor hasn't captured, which the spatial model in Step 2 can use.
+
+The semivariogram in the Plot Preview panel is how this is visualized — see [Plot Preview Panel](#plot-preview-panel) for how to read it.
+
+### Step 2: The Spatial Model
+
+Conceptually, Step 2 fits:
+
+```
+carbon = raster predictor effect + spatially structured variation + unstructured variation
+```
+
+FCF fits this using a Gaussian-process spatial model with an exponential correlation function, where the influence between two locations decreases with the geographic distance between them.
+
+Specifically, FCF fits a **spatially-varying intercept** model: the baseline carbon level is allowed to vary smoothly across the landscape, while the strength of the relationship between the raster predictor and carbon (the slope) is held constant everywhere. This is a specific case within the broader spatially-varying-coefficient framework described in Babcock et al. (2015), which allows more than one coefficient to vary spatially — FCF varies only the intercept.
+
+The model is estimated using MCMC (Markov chain Monte Carlo) sampling — see the [Plot Preview Panel](#plot-preview-panel) description of Step 2's diagnostic plots for how to check that the sampling behaved well.
+
+### Step 3: Posterior Predictions and Uncertainty
+
+Step 3 does not simply produce one number per pixel. The Bayesian model generates posterior predictive samples — a range of plausible carbon values at each location, given the observed field data, the raster predictor, the fitted relationships, the spatial dependence, and the remaining parameter uncertainty.
+
+In practical terms:
+
+- The **prediction map** shows what the model estimates.
+- The **uncertainty map** shows how confident the model is in those estimates.
+
+### Why Uncertainty Matters
+
+Two locations can have the same predicted carbon value but very different amounts of supporting evidence. For example:
+
+| Location | Predicted carbon | Uncertainty |
+|---|---|---|
+| A | 150 | Low |
+| B | 150 | High |
+
+The model's best estimate is identical, but the evidence behind it is not. Uncertainty tends to be higher farther from field plots, in areas with unusual predictor values, or where the model doesn't explain local variability well.
+
+Always interpret the prediction map together with the uncertainty map — a high value in the uncertainty map doesn't mean the prediction is wrong, only that a wider range of carbon values remains plausible at that location.
+
+------
+
 ## Understanding the Outputs
 
 FCF creates several files during an analysis. Not every file needs to be used directly by the user.
@@ -328,29 +394,29 @@ Use these plots to evaluate the behavior of the Bayesian model.
 
 Created during Step 3.
 
-This is the primary raster product for viewing and mapping the model predictions.
+Contains two bands:
 
-It contains the predicted mean carbon values and associated per-pixel uncertainty.
+- `carbon_mn` — the posterior predictive mean. This is the primary carbon prediction map.
+- `carbon_sd` — the posterior predictive standard deviation, representing per-pixel prediction uncertainty.
+
+A high `carbon_sd` does not necessarily mean the prediction is wrong — it means the model supports a wider range of plausible values at that location.
 
 Use this product when you want to visualize carbon estimates across the landscape or examine individual pixel predictions.
 
 ### `pred-joint.tif`
 
-Also created during Step 3.
+Also created during Step 3, but structurally different from `pred.tif` — this is **not** a two-band mean/SD summary.
 
-This prediction product preserves information needed for uncertainty-aware aggregation.
+`pred-joint.tif` contains the raw joint posterior predictive samples: one raster band per posterior draw, rather than a single mean and standard deviation, generated on a coarser grid than `pred.tif` (the underlying raster is aggregated before this step, to keep the joint sampling computationally tractable). Each band is one internally-consistent, plausible realization of carbon across the landscape.
 
-Use the joint prediction when estimating uncertainty for quantities summarized across an area, such as:
+This matters because nearby predictions are not statistically independent — they share spatial covariance. If you tried to estimate uncertainty for an area (a management-unit total, a polygon mean) by simply combining `pred.tif`'s independent per-pixel uncertainties, you would ignore that shared covariance and likely understate the true uncertainty. The joint samples in `pred-joint.tif` preserve the relationships between locations, so uncertainty can be correctly propagated across multiple pixels. Babcock et al. (2018) — see [Scientific Background](#scientific-background) — discusses this in more depth for area-based biomass estimates.
 
-- Mean carbon within a management unit
-- Carbon totals within a polygon
-- Other area-based summaries where uncertainty needs to be reported
+### Pixel vs. Area-Based Predictions
 
-In simple terms:
+- **`pred.tif`** is appropriate for displaying the carbon map, examining individual locations, comparing spatial patterns, and showing pixel-level prediction uncertainty.
+- **`pred-joint.tif`** is appropriate whenever you need uncertainty for an aggregated quantity: mean carbon within a management unit, total carbon within a polygon, watershed-level carbon estimates, or any other area-based summary.
 
-Use `pred.tif` for mapping and examining individual predictions.
-
-Use `pred-joint.tif` when aggregating predictions across an area and carrying uncertainty into that calculation.
+In short: use `pred.tif` for maps and individual-location summaries. Use the joint posterior predictive samples in `pred-joint.tif` when calculating uncertainty for an area-based estimate.
 
 ### Model Files
 
@@ -469,6 +535,37 @@ Controls whether the workflow stops when the raster does not completely cover th
 **`raster.coverage.tolerance`**
 
 Allows a small difference between the raster and boundary extents, which can be useful for minor discrepancies caused by pixel alignment or rounding.
+
+------
+
+## Limitations
+
+Prediction quality depends on several factors that FCF's statistical machinery cannot fully compensate for:
+
+- The quality and representativeness of the field plots
+- The quality of the raster predictor
+- How well the raster predictor actually relates to measured carbon
+- The spatial distribution of the plots
+- The model's underlying assumptions
+- Whether the areas being predicted resemble the conditions represented in the field data used to fit the model
+
+The Bayesian model quantifies uncertainty under its own assumptions, but that uncertainty estimate does not compensate for systematically poor or biased input data.
+
+------
+
+## Scientific Background
+
+FCF's modeling approach is closely related to the Bayesian spatial modeling framework described in:
+
+> Babcock, C., Finley, A. O., Bradford, J. B., Kolka, R., Birdsey, R., & Ryan, M. G. (2015). LiDAR based prediction of forest biomass using hierarchical models with spatially varying coefficients. *Remote Sensing of Environment*, 169, 113–127. https://doi.org/10.1016/j.rse.2015.07.028
+
+This is the primary methodological reference for FCF's spatial model. As described in [Understanding the Modeling Process](#understanding-the-modeling-process), FCF specifically fits a spatially-varying-intercept model — a particular case within the broader spatially-varying-coefficient framework that paper introduces, not the full multi-coefficient formulation.
+
+For the reasoning behind joint predictions and area-based uncertainty (used in `pred-joint.tif`), see:
+
+> Babcock, C., Finley, A. O., Andersen, H.-E., Pattison, R., Cook, B. D., Morton, D. C., Alonzo, M., Nelson, R., Gregoire, T., Ene, L., Gobakken, T., & Næsset, E. (2018). Geostatistical estimation of forest biomass in interior Alaska combining Landsat-derived tree cover, sampled airborne lidar and field observations. *Remote Sensing of Environment*, 212, 212–230. https://doi.org/10.1016/j.rse.2018.04.044
+
+FCF is an application-specific implementation closely related to these methods. It should not be assumed to reproduce every model or analysis described in either paper.
 
 ------
 
