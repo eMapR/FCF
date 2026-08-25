@@ -191,6 +191,8 @@ The modeling workflow consists of four sequential steps.
 - Loads spatial data (boundary, plots, raster)
 - Extracts raster values at plot locations
 
+The raster coverage check runs every time spatial data is loaded, so it is repeated in Steps 1-3 as well, not just Step 0. This ensures the warning is visible even if steps are run separately or out of order.
+
 ### Step 1
 
 - Fits a non-spatial linear regression model
@@ -258,8 +260,8 @@ Requirements:
 
 - All spatial data must use a common coordinate reference system (CRS).
 - The raster should cover the boundary polygon.
-- By default, Step 0 can be configured either to stop on raster coverage mismatch or to log a warning and continue when the mismatch is small and expected.
-- The GUI checks both CRS consistency and raster coverage during Step 0 and reports readable messages if they fail.
+- By default, the workflow can be configured either to stop on raster coverage mismatch or to log a warning and continue when the mismatch is small and expected.
+- The GUI checks CRS consistency during Step 0, and checks raster coverage every time spatial data is loaded (Steps 0-3), reporting readable messages if they fail.
 
 Practical notes:
 
@@ -299,7 +301,7 @@ Recommended first-pass workflow:
 
 Raster coverage behavior can also be controlled from YAML:
 
-- `strict.raster.coverage` - when `true`, Step 0 stops if the raster extent does not cover the boundary extent
+- `strict.raster.coverage` - when `true`, each step stops if the raster extent does not cover the boundary extent
 - `raster.coverage.tolerance` - non-negative tolerance in the raster CRS units that allows small edge mismatches
 
 Example:
@@ -324,7 +326,7 @@ The configuration file specifies:
 - Paths to input data and output directories
 - MCMC settings (number of samples, thinning)
 - Prior bounds and tuning parameters for the spatial model
-- Raster coverage validation behavior for Step 0
+- Raster coverage validation behavior, checked on every step
 
 The GUI allows users to load, edit, and save the configuration file.
 
@@ -345,6 +347,30 @@ Typical outputs include:
 - `m.1.pred.joint.RData`, serialized joint predictive samples
 
 `pred.tif` is intended for mapping and per-pixel summaries. `pred-joint.tif` is intended for aggregation workflows where uncertainty over areas, polygons, or totals matters.
+
+------
+
+## Interpreting Diagnostic Plots
+
+Each step produces plots for visually checking model behavior. The panels within each plot are not separately labeled, so this section explains what each one shows.
+
+### `semivariogram.png` (Step 1)
+
+A single panel showing the empirical semivariogram of the non-spatial regression residuals, with the fitted nugget/sill/range curve overlaid. It shows how residual spatial correlation decays with distance, and is the basis for the spatial model fit in Step 2.
+
+### `chainImg.png` (Step 2)
+
+An MCMC diagnostic grid with one row per model parameter (`phi`, the spatial decay rate; `sigma.sq`, the spatial variance; `tau.sq`, the nugget/error variance) and two columns per row:
+
+- **Left column** – trace plot, the sampled value at each MCMC iteration. Use this to check that the chain is mixing well and not drifting or getting stuck.
+- **Right column** – posterior density plot for that parameter, summarizing the distribution of sampled values after discarding burn-in.
+
+### Step 3 prediction plot
+
+A sequence of side-by-side panel pairs: the mean prediction map on the left, and one output layer on the right, repeated once per layer in the prediction raster. For the standard output of `predict_spatial`, this means:
+
+- Pair 1: mean prediction vs. mean prediction (`carbon_mn`)
+- Pair 2: mean prediction vs. the standard deviation layer (`carbon_sd`), i.e. the per-pixel uncertainty map
 
 ------
 

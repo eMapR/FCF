@@ -434,7 +434,7 @@ predict_spatial <- function(model, carbon.map, site, out_dir = "results", n.thre
   pred.rast <- rast(pred.df, type = "xyz", crs = crs(carbon.map))
 
   save(pred, file = file.path(out_dir, site, "m.1.pred.RData"))
-  writeRaster(pred.rast, filename = file.path(out_dir, site, "pred.tif"))
+  writeRaster(pred.rast, filename = file.path(out_dir, site, "pred.tif"), overwrite = TRUE)
   return(pred.rast)
 }
 
@@ -449,7 +449,7 @@ predict_joint <- function(model, carbon.map, site, out_dir = "results", n.thread
   save(pred, file = file.path(out_dir, site, "m.1.pred.joint.RData"))
   pred.df <- as.data.frame(cbind(coords.pred * 1000, pred$p.y.predictive.samples))
   pred.rast <- rast(pred.df, type = "xyz", crs = crs(carbon.map))
-  writeRaster(pred.rast, filename = file.path(out_dir, site, "pred-joint.tif"))
+  writeRaster(pred.rast, filename = file.path(out_dir, site, "pred-joint.tif"), overwrite = TRUE)
   return(pred.rast)
 }
 
