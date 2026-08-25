@@ -352,25 +352,35 @@ Typical outputs include:
 
 ## Interpreting Diagnostic Plots
 
-Each step produces plots for visually checking model behavior. The panels within each plot are not separately labeled, so this section explains what each one shows.
+The workflow produces 3 diagnostic plot images, from Steps 1-3. The panels within each are not separately labeled, so this section numbers them explicitly.
 
-### `semivariogram.png` (Step 1)
+### Plot 1 – `semivariogram.png` (Step 1) – 1 panel
 
-A single panel showing the empirical semivariogram of the non-spatial regression residuals, with the fitted nugget/sill/range curve overlaid. It shows how residual spatial correlation decays with distance, and is the basis for the spatial model fit in Step 2.
+- **Panel 1**: the empirical semivariogram of the non-spatial regression residuals, with the fitted nugget/sill/range curve overlaid. Shows how residual spatial correlation decays with distance, and is the basis for the spatial model fit in Step 2.
 
-### `chainImg.png` (Step 2)
+### Plot 2 – `chainImg.png` (Step 2) – 6 panels
 
-An MCMC diagnostic grid with one row per model parameter (`phi`, the spatial decay rate; `sigma.sq`, the spatial variance; `tau.sq`, the nugget/error variance) and two columns per row:
+An MCMC diagnostic grid, one row per model parameter, two panels (trace, then density) per row:
 
-- **Left column** – trace plot, the sampled value at each MCMC iteration. Use this to check that the chain is mixing well and not drifting or getting stuck.
-- **Right column** – posterior density plot for that parameter, summarizing the distribution of sampled values after discarding burn-in.
+| Row | Parameter | Trace panel | Density panel |
+|---|---|---|---|
+| 1 | `phi` (spatial decay rate) | Panel 1 | Panel 2 |
+| 2 | `sigma.sq` (spatial variance) | Panel 3 | Panel 4 |
+| 3 | `tau.sq` (nugget/error variance) | Panel 5 | Panel 6 |
 
-### Step 3 prediction plot
+- **Trace panels** (left column) show the sampled value at each MCMC iteration. Use these to check that the chain is mixing well and not drifting or getting stuck.
+- **Density panels** (right column) show the posterior distribution of that parameter after discarding burn-in.
 
-A sequence of side-by-side panel pairs: the mean prediction map on the left, and one output layer on the right, repeated once per layer in the prediction raster. For the standard output of `predict_spatial`, this means:
+### Plot 3 – Step 3 prediction plot – 2 panels, shown twice
 
-- Pair 1: mean prediction vs. mean prediction (`carbon_mn`)
-- Pair 2: mean prediction vs. the standard deviation layer (`carbon_sd`), i.e. the per-pixel uncertainty map
+The plot draws the same 2-panel layout once per layer in the prediction raster (2 layers: mean, then SD), so only the final pass is visible on screen:
+
+| Pass | Panel 1 (left) | Panel 2 (right) |
+|---|---|---|
+| 1st (overwritten) | Mean prediction map | Mean prediction map (`carbon_mn`, repeated) |
+| 2nd (final, visible) | Mean prediction map | SD / uncertainty map (`carbon_sd`) |
+
+The 2nd pass is the one worth reading: Panel 1 is the mean carbon prediction, Panel 2 is the per-pixel uncertainty.
 
 ------
 
