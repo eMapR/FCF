@@ -47,23 +47,13 @@ The panel updates automatically as steps finish.
 
 The preview displays the empirical semivariogram generated from the residuals of the initial regression model. It answers a simple question: after accounting for the raster predictor, is there still a geographic pattern in what's left over?
 
-The plot shows three characteristic features:
-
-- **Nugget** — variation at very short distances, including measurement error and fine-scale variability not explained by location.
-- **Sill** — the approximate overall residual variance represented by the variogram, roughly where the curve levels off.
-- **Range** — the approximate distance beyond which observations are no longer meaningfully spatially related.
-
-See [Understanding the Modeling Process](#understanding-the-modeling-process) for why this matters.
+See [Understanding the Modeling Process](#understanding-the-modeling-process) for what the semivariogram's nugget, sill, and range mean and why this check matters.
 
 **After Step 2 — Model Diagnostics**
 
 The preview displays diagnostic plots from the Bayesian model.
 
-The figure contains trace and density plots for three model parameters:
-
-- `phi` — spatial decay; how quickly spatial correlation decreases with distance
-- `sigma.sq` — spatial variance; variation associated with the spatial process
-- `tau.sq` — nugget/error variance; variation not represented by the spatial process
+The figure contains trace and density plots for three model parameters: `phi`, `sigma.sq`, and `tau.sq`. See [Understanding the Modeling Process](#understanding-the-modeling-process) for what each one represents.
 
 The trace plots help determine whether the model is sampling consistently: a healthy trace generally fluctuates around a stable region without persistent upward or downward drift, and without getting stuck.
 
@@ -328,7 +318,13 @@ Residual = observed carbon − carbon predicted by the regression
 
 It then checks whether nearby plots tend to have similar residuals. If they do, that's evidence of residual spatial dependence — geographic location contains information the raster predictor hasn't captured, which the spatial model in Step 2 can use.
 
-The semivariogram in the Plot Preview panel is how this is visualized — see [Plot Preview Panel](#plot-preview-panel) for how to read it.
+The semivariogram in the Plot Preview panel is how this is visualized — it plots residual similarity against distance between plots, and shows three characteristic features:
+
+- **Nugget** — variation at very short distances, including measurement error and fine-scale variability not explained by location.
+- **Sill** — the approximate overall residual variance represented by the variogram, roughly where the curve levels off.
+- **Range** — the approximate distance beyond which observations are no longer meaningfully spatially related.
+
+In short, the semivariogram answers: *is there spatial structure remaining after accounting for the raster predictor?*
 
 ### Step 2: The Spatial Model
 
@@ -342,7 +338,13 @@ FCF fits this using a Gaussian-process spatial model with an exponential correla
 
 Specifically, FCF fits a **spatially-varying intercept** model: the baseline carbon level is allowed to vary smoothly across the landscape, while the strength of the relationship between the raster predictor and carbon (the slope) is held constant everywhere. This is a specific case within the broader spatially-varying-coefficient framework described in Babcock et al. (2015), which allows more than one coefficient to vary spatially — FCF varies only the intercept.
 
-The model is estimated using MCMC (Markov chain Monte Carlo) sampling — see the [Plot Preview Panel](#plot-preview-panel) description of Step 2's diagnostic plots for how to check that the sampling behaved well.
+The model is estimated using MCMC (Markov chain Monte Carlo) sampling, and reports three parameters, shown in the Step 2 diagnostic plots (see the [Plot Preview Panel](#plot-preview-panel)):
+
+- **`phi` — spatial decay.** Controls how quickly spatial correlation decreases with distance. Faster decay means nearby observations lose their influence on each other more quickly as distance increases.
+- **`sigma.sq` — spatial variance.** The amount of unexplained variation associated with the spatial process itself.
+- **`tau.sq` — nugget/error variance.** Variation that is *not* spatially structured, including fine-scale variability and measurement error.
+
+Because the model explicitly represents spatial dependence, nearby field observations can contribute information to nearby predictions — not just their own location.
 
 ### Step 3: Posterior Predictions and Uncertainty
 
