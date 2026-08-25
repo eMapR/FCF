@@ -643,46 +643,74 @@ run_step <- function(console_text, plot_label, yaml_text, step_id) {
 
 build_help_text <- function() {
   c(
-    "Input structure:",
-    "Set data_dir to the parent directory that contains one folder per site.",
-    "The site value should match that folder name exactly.",
-    "Expected files inside data_dir/site/: bnd/bnd.shp, plots/plots.shp, carbon-map.tif.",
+    "This section walks through the app one panel at a time, in the order",
+    "the panels appear on screen (left column, then right column).",
     "",
-    "Output behavior:",
-    "Step 3 writes both pred.tif (per-pixel mean and SD products) and pred-joint.tif",
-    "(joint predictive samples for aggregation-friendly uncertainty). One click produces both.",
+    "## CONSOLE OUTPUT PANEL (top left)",
+    "Shows live output and status messages while a step is running, and the",
+    "full log once it finishes. If a step fails, the error message explaining",
+    "why appears here - check this panel first.",
     "",
-    "Plot Preview panel:",
-    "This one panel shows a different image depending on which step you last ran,",
-    "refreshed automatically when that step finishes.",
+    "## PLOT PREVIEW PANEL (bottom left)",
+    "Shows the diagnostic image from whichever step you most recently ran.",
+    "It updates automatically when that step finishes, so what you see",
+    "changes as you move through the workflow:",
     "",
-    "After Step 1 (semivariogram) - 1 panel:",
-    "  Panel 1: empirical semivariogram of residuals with the fitted",
-    "  nugget/sill/range curve, showing how spatial correlation decays with distance.",
+    "-- After Step 1 (semivariogram) - 1 panel:",
+    "    Panel 1: the empirical semivariogram of residuals, with the fitted",
+    "    nugget/sill/range curve. Shows how spatial correlation decays with distance.",
     "",
-    "After Step 2 (MCMC chain diagnostics) - 6 panels, one row per parameter:",
-    "  Row 1 (phi, spatial decay rate):   Panel 1 = trace, Panel 2 = density",
-    "  Row 2 (sigma.sq, spatial variance): Panel 3 = trace, Panel 4 = density",
-    "  Row 3 (tau.sq, nugget variance):    Panel 5 = trace, Panel 6 = density",
-    "  Trace panels show the sampled value per MCMC iteration (check for mixing).",
-    "  Density panels show the posterior distribution of that parameter.",
+    "-- After Step 2 (MCMC chain diagnostics) - 6 panels, one row per parameter:",
+    "    Row 1 (phi, spatial decay rate):    Panel 1 = trace, Panel 2 = density",
+    "    Row 2 (sigma.sq, spatial variance): Panel 3 = trace, Panel 4 = density",
+    "    Row 3 (tau.sq, nugget variance):    Panel 5 = trace, Panel 6 = density",
+    "    Trace panels (left) show the sampled value per iteration - use them to",
+    "    check the chain is mixing well, not drifting or stuck.",
+    "    Density panels (right) show the posterior distribution of that parameter.",
     "",
-    "After Step 3 (prediction plot) - 2 side-by-side panels, shown twice:",
-    "  1st pass - Panel 1: mean prediction map. Panel 2: mean prediction map (repeated).",
-    "  2nd pass - Panel 1: mean prediction map. Panel 2: SD (uncertainty) map.",
-    "  Only the 2nd pass stays on screen; it is the one worth reading.",
+    "-- After Step 3 (prediction plot) - 2 panels:",
+    "    Left: the mean carbon prediction map.",
+    "    Right: the standard deviation (uncertainty) map for that prediction.",
     "",
-    "Config editing:",
-    "Use the shortcut fields for site, data_dir, and output_dir, then Apply to YAML.",
-    "Use Save As before branching experiments so the template stays untouched.",
+    "## QUICK CONFIG SHORTCUTS PANEL (top right)",
+    "The fastest way to change the settings you'll edit most often, without",
+    "scrolling through the full YAML file below.",
+    "  Site: the site subfolder to use. Must match a folder name under Data Dir.",
+    "  Data Dir: the parent folder that contains one subfolder per site.",
+    "  Output Dir: where results (plots, predictions, models) get written.",
+    "  Browse: opens a folder picker for Data Dir or Output Dir.",
+    "  Apply To YAML: writes Site/Data Dir/Output Dir into the YAML Editor.",
+    "  Pull From YAML: reloads these three fields from the YAML Editor's",
+    "  current contents (use this if you edited the YAML directly).",
     "",
-    "Step order:",
-    "By default the GUI enforces Step 0 -> Step 1 -> Step 2 -> Step 3.",
-    "Enable 'Allow out-of-order runs' only if you know the required outputs already exist.",
+    "## YAML EDITOR PANEL (middle right)",
+    "The full configuration file as editable text - every setting the",
+    "workflow uses, not just the three shortcut fields above.",
+    "  Load YAML: open a different config file from disk into the editor.",
+    "  Load Template: reset the editor to a blank starting template.",
+    "  Save: write the editor's contents back to the currently loaded file.",
+    "  Save As: write the editor's contents to a new file. Use this before",
+    "  trying changes so your working config stays untouched.",
     "",
-    "Tuning guidance:",
-    "Most users should edit site paths and basic run settings first.",
-    "The variogram step helps populate sill and nugget-related values before Step 2."
+    "## RUN WORKFLOW PANEL (lower right)",
+    "Runs the modeling pipeline, one step at a time, in order. Each row shows",
+    "a step's current status and a button to run it:",
+    "  Step 0: Check Inputs - validates the config, file structure, coordinate",
+    "  systems, and raster coverage before anything else runs.",
+    "  Step 1: Fit Variogram - fits a simple non-spatial model and estimates",
+    "  nugget and sill from the residuals.",
+    "  Step 2: Fit Spatial Model - runs the MCMC sampler and recovers",
+    "  posterior summaries. This is usually the slowest step.",
+    "  Step 3: Predict Outputs - generates both prediction files (see",
+    "  'Understanding the outputs' in the README) in a single run.",
+    "  Allow out-of-order runs: lets you run a step before its prerequisite",
+    "  has completed. Leave this unchecked unless you already have the",
+    "  required outputs from an earlier run.",
+    "  The text below the checkbox shows the current status of the step",
+    "  that is running (or the last one that ran).",
+    "",
+    "## HELP PANEL (bottom right)",
+    "This panel. Explains what each part of the interface does."
   )
 }
 
@@ -892,13 +920,22 @@ tktag.configure(
   font = tkfont.create(family = "Courier New", size = 11, weight = "bold"),
   foreground = "#1a4d80"
 )
+tktag.configure(
+  help_text, "subheader",
+  font = tkfont.create(family = "Courier New", size = 11, weight = "bold")
+)
 for (help_line in build_help_text()) {
-  is_header <- nzchar(help_line) && !startsWith(help_line, "  ") && endsWith(help_line, ":")
+  is_panel_header <- startsWith(help_line, "## ")
+  is_sub_header <- startsWith(help_line, "-- ")
+  if (is_panel_header) help_line <- sub("^## ", "", help_line)
+  if (is_sub_header) help_line <- sub("^-- ", "", help_line)
   start_index <- tclvalue(tkindex(help_text, "end"))
   tkinsert(help_text, "end", paste0(help_line, "\n"))
-  if (is_header) {
-    end_index <- tclvalue(tkindex(help_text, "end"))
+  end_index <- tclvalue(tkindex(help_text, "end"))
+  if (is_panel_header) {
     tktag.add(help_text, "header", start_index, end_index)
+  } else if (is_sub_header) {
+    tktag.add(help_text, "subheader", start_index, end_index)
   }
 }
 tkconfigure(help_text, state = "disabled")
