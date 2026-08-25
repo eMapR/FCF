@@ -352,13 +352,13 @@ Typical outputs include:
 
 ## Interpreting Diagnostic Plots
 
-The workflow produces 3 diagnostic plot images, from Steps 1-3. The panels within each are not separately labeled, so this section numbers them explicitly.
+The GUI's "Plot Preview" panel shows one image at a time: whichever diagnostic plot the most recently run step produced, refreshed automatically when that step finishes. The panels within each are not separately labeled, so this section numbers them explicitly.
 
-### Plot 1 – `semivariogram.png` (Step 1) – 1 panel
+### After Step 1 (`semivariogram.png`) – 1 panel
 
 - **Panel 1**: the empirical semivariogram of the non-spatial regression residuals, with the fitted nugget/sill/range curve overlaid. Shows how residual spatial correlation decays with distance, and is the basis for the spatial model fit in Step 2.
 
-### Plot 2 – `chainImg.png` (Step 2) – 6 panels
+### After Step 2 (`chainImg.png`) – 6 panels
 
 An MCMC diagnostic grid, one row per model parameter, two panels (trace, then density) per row:
 
@@ -371,7 +371,7 @@ An MCMC diagnostic grid, one row per model parameter, two panels (trace, then de
 - **Trace panels** (left column) show the sampled value at each MCMC iteration. Use these to check that the chain is mixing well and not drifting or getting stuck.
 - **Density panels** (right column) show the posterior distribution of that parameter after discarding burn-in.
 
-### Plot 3 – Step 3 prediction plot – 2 panels, shown twice
+### After Step 3 (prediction plot) – 2 panels, shown twice
 
 The plot draws the same 2-panel layout once per layer in the prediction raster (2 layers: mean, then SD), so only the final pass is visible on screen:
 

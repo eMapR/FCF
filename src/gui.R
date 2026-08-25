@@ -642,7 +642,7 @@ run_step <- function(console_text, plot_label, yaml_text, step_id) {
 }
 
 build_help_text <- function() {
-  paste(
+  c(
     "Input structure:",
     "Set data_dir to the parent directory that contains one folder per site.",
     "The site value should match that folder name exactly.",
@@ -652,21 +652,22 @@ build_help_text <- function() {
     "Step 3 writes both pred.tif (per-pixel mean and SD products) and pred-joint.tif",
     "(joint predictive samples for aggregation-friendly uncertainty). One click produces both.",
     "",
-    "Reading diagnostic plots:",
-    "There are 3 diagnostic plot images, produced by Steps 1-3.",
+    "Plot Preview panel:",
+    "This one panel shows a different image depending on which step you last ran,",
+    "refreshed automatically when that step finishes.",
     "",
-    "Plot 1 - semivariogram.png (Step 1). 1 panel:",
+    "After Step 1 (semivariogram) - 1 panel:",
     "  Panel 1: empirical semivariogram of residuals with the fitted",
     "  nugget/sill/range curve, showing how spatial correlation decays with distance.",
     "",
-    "Plot 2 - chainImg.png (Step 2). 6 panels, one row per parameter:",
+    "After Step 2 (MCMC chain diagnostics) - 6 panels, one row per parameter:",
     "  Row 1 (phi, spatial decay rate):   Panel 1 = trace, Panel 2 = density",
     "  Row 2 (sigma.sq, spatial variance): Panel 3 = trace, Panel 4 = density",
     "  Row 3 (tau.sq, nugget variance):    Panel 5 = trace, Panel 6 = density",
     "  Trace panels show the sampled value per MCMC iteration (check for mixing).",
     "  Density panels show the posterior distribution of that parameter.",
     "",
-    "Plot 3 - Step 3 prediction plot. 2 side-by-side panels, shown twice:",
+    "After Step 3 (prediction plot) - 2 side-by-side panels, shown twice:",
     "  1st pass - Panel 1: mean prediction map. Panel 2: mean prediction map (repeated).",
     "  2nd pass - Panel 1: mean prediction map. Panel 2: SD (uncertainty) map.",
     "  Only the 2nd pass stays on screen; it is the one worth reading.",
@@ -681,8 +682,7 @@ build_help_text <- function() {
     "",
     "Tuning guidance:",
     "Most users should edit site paths and basic run settings first.",
-    "The variogram step helps populate sill and nugget-related values before Step 2.",
-    sep = "\n"
+    "The variogram step helps populate sill and nugget-related values before Step 2."
   )
 }
 
@@ -874,15 +874,36 @@ tkgrid(status_label, row = row_index, column = 0, columnspan = 2, sticky = "ew",
 help_panel <- create_collapsible_panel(right_frame, "Help", default_open = FALSE)
 tkgrid(help_panel$panel, row = 3, column = 0, sticky = "ew", pady = c(10, 0))
 help_frame <- help_panel$body
+tkgrid.rowconfigure(help_frame, 0, weight = 1)
 tkgrid.columnconfigure(help_frame, 0, weight = 1)
-help_label <- tklabel(
-  help_frame,
-  text = build_help_text(),
-  justify = "left",
-  anchor = "w",
-  wraplength = 420
+help_text <- tktext(
+  help_frame, width = 54, height = 18, wrap = "word",
+  font = tkfont.create(family = "Courier New", size = 11),
+  spacing1 = 2, spacing3 = 6, padx = 6, pady = 6
 )
-tkgrid(help_label, row = 0, column = 0, sticky = "ew", padx = 6, pady = 6)
+help_scroll <- tkscrollbar(
+  help_frame,
+  orient = "vertical",
+  command = function(...) tkyview(help_text, ...)
+)
+tkconfigure(help_text, yscrollcommand = function(...) tkset(help_scroll, ...))
+tktag.configure(
+  help_text, "header",
+  font = tkfont.create(family = "Courier New", size = 11, weight = "bold"),
+  foreground = "#1a4d80"
+)
+for (help_line in build_help_text()) {
+  is_header <- nzchar(help_line) && !startsWith(help_line, "  ") && endsWith(help_line, ":")
+  start_index <- tclvalue(tkindex(help_text, "end"))
+  tkinsert(help_text, "end", paste0(help_line, "\n"))
+  if (is_header) {
+    end_index <- tclvalue(tkindex(help_text, "end"))
+    tktag.add(help_text, "header", start_index, end_index)
+  }
+}
+tkconfigure(help_text, state = "disabled")
+tkgrid(help_text, row = 0, column = 0, sticky = "nsew", padx = c(6, 0), pady = 6)
+tkgrid(help_scroll, row = 0, column = 1, sticky = "ns", padx = c(0, 6), pady = 6)
 
 tkgrid(data_dir_button, row = 1, column = 2, sticky = "ew", pady = 2)
 tkgrid(output_dir_button, row = 2, column = 2, sticky = "ew", pady = 2)
