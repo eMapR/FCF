@@ -477,6 +477,14 @@ The Bayesian spatial model uses MCMC sampling and can take considerably longer t
 
 Large analyses or configurations with many samples may require substantially more processing time.
 
+**(Windows) "Cannot remove plot.png"**
+
+The application briefly holds the diagnostic plot file open. If this error persists, close any image viewer or other program that might have `plot.png` open, then re-run the step.
+
+**(Windows) A path in the YAML config isn't found**
+
+Use forward slashes in `data_dir` and `output_dir`, even on Windows — for example `C:/Users/YourName/data`, not `C:\Users\YourName\data`. Backslashes need escaping in YAML and are easy to get wrong.
+
 ------
 
 ## Installation
