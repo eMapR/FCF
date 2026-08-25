@@ -26,7 +26,8 @@ For a normal analysis, run the steps in order from Step 0 through Step 3.
 ## Understanding the Interface
 
 The FCF interface is divided into several panels. Each panel has a specific purpose.
-![FCF application interface](FCF_step3.png)
+
+![FCF application interface](FCF-step3.png)
 
 ### Console Output Panel
 
